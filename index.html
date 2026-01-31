@@ -1,0 +1,557 @@
+<!doctype html>
+<html lang="id" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Pemanasan Membaca Suku Kata</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    /* --- Base Styles --- */
+    body {
+      font-family: 'Fredoka', sans-serif;
+      overscroll-behavior-y: none; /* Prevent pull-to-refresh on mobile */
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* --- Animations --- */
+    @keyframes bounce-enter {
+      0% { transform: scale(0.5); opacity: 0; }
+      70% { transform: scale(1.05); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    
+    @keyframes pulse-ring {
+      0% { box-shadow: 0 0 0 0 rgba(147, 51, 234, 0.7); }
+      70% { box-shadow: 0 0 0 10px rgba(147, 51, 234, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(147, 51, 234, 0); }
+    }
+
+    @keyframes float-mascot {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-10px) rotate(2deg); }
+    }
+
+    .card-enter {
+      animation: bounce-enter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    /* --- Custom UI Components --- */
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+
+    .chunky-card {
+      box-shadow: 0 6px 0 #e2e8f0;
+      transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      top: 0;
+    }
+    
+    .chunky-card:active {
+      transform: translateY(6px);
+      box-shadow: 0 0 0 #e2e8f0;
+    }
+    
+    .chunky-card.is-read {
+      border: 2px solid #4ade80;
+      box-shadow: 0 6px 0 #86efac;
+    }
+    
+    .chunky-card.is-read:active {
+      box-shadow: 0 0 0 #86efac;
+    }
+
+    .chunky-btn {
+      transition: all 0.15s ease;
+      transform: translateY(0);
+      box-shadow: 0 4px 0 rgba(0,0,0,0.15);
+    }
+    
+    .chunky-btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 0 0 rgba(0,0,0,0.15);
+    }
+
+    .mascot-float {
+      animation: float-mascot 3s ease-in-out infinite;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #d8b4fe; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: #a855f7; }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+</head>
+
+<body class="h-full m-0 p-0 overflow-x-hidden bg-gradient-to-br from-yellow-50 via-pink-50 to-purple-100 text-slate-800">
+  
+  <div id="app" class="w-full max-w-4xl mx-auto min-h-full flex flex-col p-4">
+    
+    <header class="text-center mb-6 relative z-10">
+      <div class="inline-block relative">
+        <h1 id="main-title" class="text-3xl md:text-4xl font-black text-purple-600 tracking-tight drop-shadow-sm mb-1">
+          🎈 Ayo Membaca!
+        </h1>
+        <div class="absolute -top-4 -right-6 text-2xl animate-bounce hidden md:block">✨</div>
+      </div>
+      <p id="instruction" class="text-slate-500 font-medium text-sm md:text-base bg-white/50 inline-block px-4 py-1 rounded-full mt-2">
+        Tap kartu untuk mendengar suara ✨
+      </p>
+    </header>
+
+    <div class="glass-panel rounded-3xl p-3 mb-6 shadow-lg shadow-purple-100">
+      
+      <div class="flex overflow-x-auto pb-2 md:pb-0 gap-2 mb-4 scrollbar-hide snap-x">
+        <button onclick="setCategory('semua')" data-cat="semua" class="cat-btn snap-start whitespace-nowrap flex-shrink-0 px-4 py-2 rounded-xl font-bold text-sm transition-all border-2 border-transparent hover:bg-white/50">
+          🌟 Semua
+        </button>
+        <button onclick="setCategory('konsonan-vokal')" data-cat="konsonan-vokal" class="cat-btn snap-start whitespace-nowrap flex-shrink-0 px-4 py-2 rounded-xl font-bold text-sm transition-all border-2 border-transparent hover:bg-white/50">
+          🅰️ ba, ca
+        </button>
+        <button onclick="setCategory('vokal-konsonan')" data-cat="vokal-konsonan" class="cat-btn snap-start whitespace-nowrap flex-shrink-0 px-4 py-2 rounded-xl font-bold text-sm transition-all border-2 border-transparent hover:bg-white/50">
+          🔤 an, ir
+        </button>
+        <button onclick="setCategory('konsonan-vokal-konsonan')" data-cat="konsonan-vokal-konsonan" class="cat-btn snap-start whitespace-nowrap flex-shrink-0 px-4 py-2 rounded-xl font-bold text-sm transition-all border-2 border-transparent hover:bg-white/50">
+          📚 bak, sir
+        </button>
+        <button onclick="setCategory('diftong')" data-cat="diftong" class="cat-btn snap-start whitespace-nowrap flex-shrink-0 px-4 py-2 rounded-xl font-bold text-sm transition-all border-2 border-transparent hover:bg-white/50">
+          🎵 ai, au
+        </button>
+      </div>
+
+      <div class="flex items-center gap-3 bg-white/60 p-3 rounded-2xl border border-white">
+        <div class="flex-grow h-4 bg-slate-200 rounded-full overflow-hidden shadow-inner relative">
+          <div id="progress-bar" class="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-700 ease-out flex items-center justify-end pr-1" style="width: 0%">
+            <div class="w-2 h-2 bg-white rounded-full opacity-50 animate-pulse"></div>
+          </div>
+        </div>
+        <span id="progress-text" class="text-purple-700 font-black text-sm w-16 text-right font-mono">0/0</span>
+      </div>
+    </div>
+
+    <div id="cards-container" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 mb-24 md:mb-8 pb-4">
+      </div>
+
+    <div class="fixed bottom-0 left-0 right-0 p-4 md:static md:p-0 md:bg-transparent z-40 bg-white/80 backdrop-blur-md md:backdrop-filter-none border-t md:border-none border-slate-200">
+      <div class="max-w-4xl mx-auto flex flex-col md:flex-row gap-3">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 w-full">
+            
+            <button onclick="shuffleCards()" class="chunky-btn bg-teal-500 hover:bg-teal-400 text-white py-3 rounded-2xl font-bold flex items-center justify-center gap-2">
+                🔀 <span class="hidden md:inline">Acak</span>
+            </button>
+            
+            <button onclick="resetProgress()" class="chunky-btn bg-orange-400 hover:bg-orange-300 text-white py-3 rounded-2xl font-bold flex items-center justify-center gap-2">
+                🔄 <span class="hidden md:inline">Ulang</span>
+            </button>
+
+            <button id="btn-speak-all" onclick="toggleSpeakAll()" class="chunky-btn bg-pink-500 hover:bg-pink-400 text-white py-3 rounded-2xl font-bold flex items-center justify-center gap-2 col-span-2 md:col-span-2">
+                <span id="icon-play">▶️</span> <span id="text-play">Putar Semua</span>
+            </button>
+        </div>
+      </div>
+    </div>
+    
+    <div id="mascot-container" class="fixed bottom-24 right-4 md:bottom-8 md:right-8 pointer-events-none z-30 transition-all duration-300 opacity-80 md:opacity-100">
+      <div id="mascot" class="text-center mascot-float">
+        <div class="text-5 md:text-6xl drop-shadow-lg filter">🐻</div>
+        <div id="encouragement-bubble" class="bg-white px-3 py-1.5 rounded-xl rounded-tr-none text-xs font-bold text-purple-600 shadow-md border-2 border-purple-100 mt-1 absolute -top-8 -left-20 w-32 whitespace-normal break-words">
+            Ayo mulai!
+        </div>
+      </div>
+    </div>
+
+    <div id="celebration" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 hidden transition-opacity duration-300 opacity-0">
+      <div class="bg-white rounded-[2rem] p-8 text-center max-w-sm mx-4 shadow-2xl transform scale-90 transition-transform duration-300 relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-b from-yellow-100/50 to-transparent pointer-events-none"></div>
+        <div class="text-8xl mb-4 animate-bounce">🎉</div>
+        <h2 class="text-3xl font-black text-purple-600 mb-2">Hebat!</h2>
+        <p class="text-slate-500 font-medium mb-6">Kamu sudah membaca semua kartu di bagian ini.</p>
+        <button onclick="closeCelebration()" class="w-full py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-2xl shadow-lg shadow-purple-200 active:scale-95 transition-transform text-lg">
+          Lanjut Belajar! 🚀
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // --- Configuration ---
+    const defaultConfig = {
+      app_title: '🎈 Ayo Membaca! 🎈',
+      instruction_text: 'Tap kartu untuk mendengar suara ✨',
+      primary_color: '#9333ea', // Purple 600
+      secondary_color: '#ffffff',
+      accent_color: '#14b8a6',
+      text_color: '#7c3aed',
+      background_color: '#fef3c7',
+      font_family: 'Fredoka',
+      font_size: 16
+    };
+    
+    let config = { ...defaultConfig };
+    
+    // --- Data ---
+    const syllableData = {
+      'konsonan-vokal': [
+        { text: 'ba', emoji: '🍌', word: 'baju' }, { text: 'bi', emoji: '💫', word: 'biru' },
+        { text: 'bu', emoji: '🌙', word: 'buku' }, { text: 'ca', emoji: '🐛', word: 'cacing' },
+        { text: 'ci', emoji: '💋', word: 'cium' }, { text: 'da', emoji: '🎲', word: 'dadu' },
+        { text: 'di', emoji: '🧱', word: 'dinding' }, { text: 'du', emoji: '🌵', word: 'duri' },
+        { text: 'ga', emoji: '🐘', word: 'gajah' }, { text: 'gu', emoji: '⛰️', word: 'gunung' },
+        { text: 'ha', emoji: '🐯', word: 'harimau' }, { text: 'ja', emoji: '⏰', word: 'jam' },
+        { text: 'ka', emoji: '🦶', word: 'kaki' }, { text: 'ki', emoji: '⬅️', word: 'kiri' },
+        { text: 'ku', emoji: '🐱', word: 'kucing' }, { text: 'la', emoji: '🌊', word: 'laut' },
+        { text: 'li', emoji: '🕯️', word: 'lilin' }, { text: 'ma', emoji: '👁️', word: 'mata' },
+        { text: 'mi', emoji: '🍜', word: 'mie' }, { text: 'mu', emoji: '👄', word: 'mulut' },
+        { text: 'na', emoji: '🍚', word: 'nasi' }, { text: 'pa', emoji: '🏠', word: 'pagar' },
+        { text: 'pi', emoji: '🔪', word: 'pisau' }, { text: 'ra', emoji: '👑', word: 'raja' },
+        { text: 'ri', emoji: '🦁', word: 'riang' }, { text: 'sa', emoji: '🐄', word: 'sapi' },
+        { text: 'si', emoji: '🪥', word: 'sikat' }, { text: 'su', emoji: '🥛', word: 'susu' },
+        { text: 'ta', emoji: '🖐️', word: 'tangan' }, { text: 'ti', emoji: '📺', word: 'tivi' },
+        { text: 'tu', emoji: '🦴', word: 'tulang' }, { text: 'wa', emoji: '🎨', word: 'warna' },
+      ],
+      'vokal-konsonan': [
+        { text: 'an', emoji: '🐕', word: 'anjing' }, { text: 'in', emoji: '💎', word: 'intan' },
+        { text: 'un', emoji: '💜', word: 'ungu' }, { text: 'ang', emoji: '💨', word: 'angin' },
+        { text: 'ing', emoji: '🐝', word: 'bising' }, { text: 'ung', emoji: '🟣', word: 'ungu' },
+        { text: 'ar', emoji: '🦅', word: 'elang' }, { text: 'ir', emoji: '💧', word: 'air' },
+        { text: 'ur', emoji: '✨', word: 'cahaya' }, { text: 'ak', emoji: '👶', word: 'anak' },
+        { text: 'ik', emoji: '🐟', word: 'ikan' }, { text: 'uk', emoji: '📖', word: 'buku' },
+        { text: 'al', emoji: '🔥', word: 'amal' }, { text: 'il', emoji: '🧪', word: 'ilmu' },
+        { text: 'ul', emoji: '🐛', word: 'ulat' }, { text: 'am', emoji: '🕐', word: 'jam' },
+        { text: 'im', emoji: '🌟', word: 'impian' }, { text: 'um', emoji: '🏠', word: 'rumah' },
+        { text: 'as', emoji: '💨', word: 'asap' }, { text: 'is', emoji: '🧊', word: 'isap' },
+        { text: 'us', emoji: '🚌', word: 'usap' },
+      ],
+      'konsonan-vokal-konsonan': [
+        { text: 'bak', emoji: '🛁', word: 'bak mandi' }, { text: 'ban', emoji: '🛞', word: 'ban' },
+        { text: 'bas', emoji: '🚌', word: 'bas' }, { text: 'cat', emoji: '🎨', word: 'cat' },
+        { text: 'dan', emoji: '➕', word: 'dan' }, { text: 'gas', emoji: '⛽', word: 'gas' },
+        { text: 'jam', emoji: '⏰', word: 'jam' }, { text: 'kas', emoji: '💰', word: 'kas' },
+        { text: 'lap', emoji: '🧹', word: 'lap' }, { text: 'mal', emoji: '🛒', word: 'mal' },
+        { text: 'pak', emoji: '👨', word: 'bapak' }, { text: 'pil', emoji: '💊', word: 'pil' },
+        { text: 'rok', emoji: '👗', word: 'rok' }, { text: 'sir', emoji: '🔊', word: 'sirine' },
+        { text: 'tas', emoji: '🎒', word: 'tas' }, { text: 'tik', emoji: '✅', word: 'centik' },
+        { text: 'tul', emoji: '✏️', word: 'pensil' }, { text: 'wan', emoji: '🦸', word: 'pahlawan' },
+      ],
+      'diftong': [
+        { text: 'ai', emoji: '💧', word: 'air' }, { text: 'au', emoji: '🐃', word: 'kerbau' },
+        { text: 'oi', emoji: '👋', word: 'amboi' }, { text: 'ei', emoji: '🎯', word: 'survei' },
+        { text: 'nya', emoji: '🐱', word: 'nyanyi' }, { text: 'nge', emoji: '😭', word: 'renge' },
+        { text: 'nga', emoji: '💬', word: 'nganga' }, { text: 'ngi', emoji: '🎵', word: 'ngilu' },
+      ]
+    };
+
+    // --- State ---
+    let currentCategory = 'semua';
+    let displayedCards = [];
+    let readCards = new Set();
+    let isAutoPlaying = false;
+    let autoPlayQueue = [];
+    let synthesis = window.speechSynthesis;
+
+    // --- Core Logic ---
+
+    function getSyllablesByCategory(category) {
+      if (category === 'semua') return Object.values(syllableData).flat();
+      return syllableData[category] || [];
+    }
+
+    function setCategory(category) {
+      stopAutoPlay();
+      currentCategory = category;
+      readCards.clear();
+      
+      // Update Tab UI
+      document.querySelectorAll('.cat-btn').forEach(btn => {
+        const isSelected = btn.dataset.cat === category;
+        if (isSelected) {
+            btn.className = 'cat-btn snap-start whitespace-nowrap flex-shrink-0 px-5 py-2 rounded-xl font-bold text-sm transition-all text-white bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg shadow-purple-200 transform scale-105';
+        } else {
+            btn.className = 'cat-btn snap-start whitespace-nowrap flex-shrink-0 px-4 py-2 rounded-xl font-bold text-sm transition-all text-purple-600 bg-white/50 border border-transparent hover:bg-white';
+        }
+      });
+      
+      renderCards();
+      updateProgress();
+      updateEncouragement(0);
+    }
+
+    function renderCards() {
+      const container = document.getElementById('cards-container');
+      displayedCards = getSyllablesByCategory(currentCategory);
+      
+      container.innerHTML = displayedCards.map((item, index) => {
+        const isRead = readCards.has(item.text);
+        return `
+        <button 
+          onclick="handleCardClick('${item.text}', ${index})"
+          id="card-${index}"
+          class="chunky-card group relative bg-white rounded-2xl p-2 md:p-4 flex flex-col items-center justify-between min-h-[140px] md:min-h-[160px] card-enter ${isRead ? 'is-read bg-green-50' : ''}"
+          style="animation-delay: ${index * 0.03}s"
+        >
+          <span class="text-4xl md:text-5xl mt-2 group-hover:scale-110 transition-transform duration-300 filter drop-shadow-sm">${item.emoji}</span>
+          
+          <div class="flex flex-col items-center w-full">
+            <span class="text-3xl md:text-4xl font-black text-slate-700 tracking-wide mb-1">${item.text}</span>
+            <span class="text-xs md:text-sm font-semibold text-slate-400 opacity-0 group-hover:opacity-100 ${isRead ? 'opacity-100 text-green-600' : ''} transition-opacity duration-300 bg-slate-100 px-2 py-0.5 rounded-full">
+                ${item.word}
+            </span>
+          </div>
+
+          ${isRead ? '<div class="absolute top-2 right-2 bg-green-400 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] shadow-sm">✓</div>' : ''}
+        </button>
+      `}).join('');
+    }
+
+    function handleCardClick(text, index) {
+      if (isAutoPlaying) stopAutoPlay();
+      speakSyllable(text, index);
+    }
+
+    function speakSyllable(text, index, onComplete) {
+      const card = document.getElementById(`card-${index}`);
+      if(!card) return;
+
+      // Visual Feedback
+      card.classList.remove('card-enter');
+      void card.offsetWidth; // trigger reflow
+      
+      // Mark as read
+      if (!readCards.has(text)) {
+        readCards.add(text);
+        card.classList.add('is-read', 'bg-green-50');
+        
+        // Reveal word permanently
+        const wordLabel = card.querySelector('span:last-child');
+        if(wordLabel) {
+            wordLabel.classList.remove('opacity-0');
+            wordLabel.classList.add('opacity-100', 'text-green-600');
+        }
+
+        // Add checkmark
+        if (!card.querySelector('.absolute.top-2')) {
+            const check = document.createElement('div');
+            check.className = 'absolute top-2 right-2 bg-green-400 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] shadow-sm animate-bounce';
+            check.innerHTML = '✓';
+            card.appendChild(check);
+        }
+        
+        updateProgress();
+        updateEncouragement();
+        
+        if (readCards.size === displayedCards.length) {
+          setTimeout(showCelebration, 800);
+        }
+      }
+
+      // Audio
+      if ('speechSynthesis' in window) {
+        synthesis.cancel(); // Stop current
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'id-ID';
+        utterance.rate = 0.8; 
+        utterance.pitch = 1.1;
+        
+        // Highlight while speaking
+        card.style.borderColor = '#9333ea';
+        
+        utterance.onend = () => {
+          card.style.borderColor = ''; // Reset border
+          if (onComplete) onComplete();
+        };
+        
+        utterance.onerror = () => {
+            // Fallback if audio fails
+            card.style.borderColor = '';
+            if (onComplete) onComplete();
+        }
+
+        synthesis.speak(utterance);
+      } else {
+          // Fallback if no speech
+          if (onComplete) setTimeout(onComplete, 500);
+      }
+    }
+
+    function toggleSpeakAll() {
+        if (isAutoPlaying) {
+            stopAutoPlay();
+        } else {
+            startAutoPlay();
+        }
+    }
+
+    function startAutoPlay() {
+        isAutoPlaying = true;
+        // UI Change
+        const btn = document.getElementById('btn-speak-all');
+        btn.classList.remove('bg-pink-500', 'hover:bg-pink-400');
+        btn.classList.add('bg-red-500', 'hover:bg-red-400');
+        document.getElementById('icon-play').innerText = '⏹️';
+        document.getElementById('text-play').innerText = 'Stop';
+
+        // Filter unread cards or read all if finished
+        let queueIndices = displayedCards.map((_, i) => i);
+        if (readCards.size < displayedCards.length) {
+             // Only play unread if incomplete
+            queueIndices = displayedCards.map((item, i) => !readCards.has(item.text) ? i : -1).filter(i => i !== -1);
+        }
+
+        playQueue(queueIndices);
+    }
+
+    function playQueue(indices) {
+        if (!isAutoPlaying || indices.length === 0) {
+            stopAutoPlay();
+            return;
+        }
+
+        const currentIndex = indices[0];
+        const currentItem = displayedCards[currentIndex];
+        
+        // Scroll to card
+        const card = document.getElementById(`card-${currentIndex}`);
+        if(card) {
+             card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+             card.classList.add('ring-4', 'ring-purple-300'); // Highlight active
+        }
+
+        speakSyllable(currentItem.text, currentIndex, () => {
+            if(card) card.classList.remove('ring-4', 'ring-purple-300');
+            playQueue(indices.slice(1)); // Recursive next
+        });
+    }
+
+    function stopAutoPlay() {
+        isAutoPlaying = false;
+        synthesis.cancel();
+        
+        const btn = document.getElementById('btn-speak-all');
+        btn.classList.add('bg-pink-500', 'hover:bg-pink-400');
+        btn.classList.remove('bg-red-500', 'hover:bg-red-400');
+        document.getElementById('icon-play').innerText = '▶️';
+        document.getElementById('text-play').innerText = 'Putar Semua';
+        
+        // Remove active rings
+        document.querySelectorAll('.ring-purple-300').forEach(el => el.classList.remove('ring-4', 'ring-purple-300'));
+    }
+
+    function shuffleCards() {
+      stopAutoPlay();
+      displayedCards = displayedCards.sort(() => Math.random() - 0.5);
+      
+      // Update DOM manually to keep state correct
+      const container = document.getElementById('cards-container');
+      container.innerHTML = ''; // clear
+      
+      // Small delay for visual effect
+      setTimeout(() => {
+          renderCards();
+      }, 50);
+    }
+
+    function resetProgress() {
+      stopAutoPlay();
+      if(confirm('Ulangi progres untuk kategori ini?')) {
+          readCards.clear();
+          renderCards();
+          updateProgress();
+          updateEncouragement();
+      }
+    }
+
+    function updateProgress() {
+      const total = displayedCards.length;
+      const completed = readCards.size;
+      const percentage = total > 0 ? (completed / total) * 100 : 0;
+      
+      document.getElementById('progress-bar').style.width = `${percentage}%`;
+      document.getElementById('progress-text').textContent = `${completed}/${total}`;
+    }
+
+    function updateEncouragement() {
+      const messages = [
+        { threshold: 0, text: 'Ayo mulai!', mascot: '🐻' },
+        { threshold: 20, text: 'Bagus!', mascot: '🐰' },
+        { threshold: 50, text: 'Luar biasa!', mascot: '🦊' },
+        { threshold: 80, text: 'Dikit lagi!', mascot: '🦁' },
+        { threshold: 100, text: 'Juara! 🏆', mascot: '🦄' },
+      ];
+      
+      const percentage = displayedCards.length > 0 ? (readCards.size / displayedCards.length) * 100 : 0;
+      const message = [...messages].reverse().find(m => percentage >= m.threshold);
+      
+      const bubble = document.getElementById('encouragement-bubble');
+      const mascot = document.getElementById('mascot').querySelector('div');
+      
+      if (bubble.innerText !== message.text) {
+          bubble.innerText = message.text;
+          mascot.innerText = message.mascot;
+          
+          // Pop animation
+          mascot.parentElement.classList.remove('mascot-float');
+          void mascot.offsetWidth;
+          mascot.parentElement.classList.add('mascot-float');
+      }
+    }
+
+    function showCelebration() {
+      const modal = document.getElementById('celebration');
+      modal.classList.remove('hidden');
+      setTimeout(() => modal.classList.remove('opacity-0'), 10);
+      modal.querySelector('div').classList.remove('scale-90');
+      modal.querySelector('div').classList.add('scale-100');
+    }
+
+    function closeCelebration() {
+      const modal = document.getElementById('celebration');
+      modal.classList.add('opacity-0');
+      modal.querySelector('div').classList.add('scale-90');
+      setTimeout(() => modal.classList.add('hidden'), 300);
+    }
+
+    // --- SDK Integration ---
+    async function onConfigChange(cfg) {
+      // Basic text updates
+      if(cfg.app_title) document.getElementById('main-title').innerText = cfg.app_title;
+      if(cfg.instruction_text) document.getElementById('instruction').innerText = cfg.instruction_text;
+      
+      // Font updates
+      if(cfg.font_family) document.body.style.fontFamily = `'${cfg.font_family}', sans-serif`;
+      
+      // Color updates (Using CSS Variables would be cleaner, but direct style for now)
+      if(cfg.primary_color) {
+          document.getElementById('main-title').style.color = cfg.primary_color;
+          document.querySelectorAll('.text-purple-600').forEach(el => el.style.color = cfg.primary_color);
+      }
+    }
+
+    // Initialize SDK
+    window.elementSdk.init({
+      defaultConfig,
+      onConfigChange,
+      mapToCapabilities: (cfg) => ({
+          fontEditable: { get: () => cfg.font_family, set: (v) => { cfg.font_family = v; } },
+          fontSizeable: { get: () => cfg.font_size, set: (v) => { cfg.font_size = v; } }
+      }),
+      mapToEditPanelValues: (cfg) => new Map([
+          ['app_title', cfg.app_title],
+          ['instruction_text', cfg.instruction_text]
+      ])
+    });
+
+    // Start
+    renderCards();
+  </script>
+</body>
+</html>
