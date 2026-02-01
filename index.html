@@ -1,182 +1,123 @@
 <!doctype html>
 <html lang="id" class="h-full">
-<head>
+ <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Pemanasan Membaca Suku Kata</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="/_sdk/element_sdk.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
-  
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
   <style>
-    /* --- Base Styles --- */
+    /* --- Custom Styles for Kid-Friendly UI --- */
     body {
       font-family: 'Fredoka', sans-serif;
       overscroll-behavior-y: none; /* Prevent pull-to-refresh on mobile */
-      -webkit-tap-highlight-color: transparent;
     }
-
-    /* --- Animations --- */
-    @keyframes bounce-enter {
-      0% { transform: scale(0.5); opacity: 0; }
-      70% { transform: scale(1.05); }
+    
+    /* Smooth Pop Animation */
+    @keyframes pop-in {
+      0% { transform: scale(0.8); opacity: 0; }
       100% { transform: scale(1); opacity: 1; }
     }
     
-    @keyframes pulse-ring {
-      0% { box-shadow: 0 0 0 0 rgba(147, 51, 234, 0.7); }
-      70% { box-shadow: 0 0 0 10px rgba(147, 51, 234, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(147, 51, 234, 0); }
-    }
-
-    @keyframes float-mascot {
-      0%, 100% { transform: translateY(0) rotate(0deg); }
-      50% { transform: translateY(-10px) rotate(2deg); }
-    }
-
     .card-enter {
-      animation: bounce-enter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      animation: pop-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
     }
 
-    /* --- Custom UI Components --- */
-    .glass-panel {
-      background: rgba(255, 255, 255, 0.6);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.5);
+    /* 3D Button/Card Effect */
+    .btn-3d {
+      transition: all 0.1s;
+      border-bottom: 4px solid rgba(0,0,0,0.15);
     }
-
-    .chunky-card {
-      box-shadow: 0 6px 0 #e2e8f0;
-      transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      top: 0;
-    }
-    
-    .chunky-card:active {
-      transform: translateY(6px);
-      box-shadow: 0 0 0 #e2e8f0;
-    }
-    
-    .chunky-card.is-read {
-      border: 2px solid #4ade80;
-      box-shadow: 0 6px 0 #86efac;
-    }
-    
-    .chunky-card.is-read:active {
-      box-shadow: 0 0 0 #86efac;
-    }
-
-    .chunky-btn {
-      transition: all 0.15s ease;
-      transform: translateY(0);
-      box-shadow: 0 4px 0 rgba(0,0,0,0.15);
-    }
-    
-    .chunky-btn:active {
+    .btn-3d:active {
       transform: translateY(4px);
-      box-shadow: 0 0 0 rgba(0,0,0,0.15);
+      border-bottom: 0px solid rgba(0,0,0,0.15);
     }
 
-    .mascot-float {
-      animation: float-mascot 3s ease-in-out infinite;
+    /* Specific Colors per state */
+    .card-unread {
+      background: white;
+      border: 2px solid #e5e7eb;
+      border-bottom: 6px solid #e5e7eb;
+    }
+    .card-read {
+      background: #dcfce7; /* green-100 */
+      border: 2px solid #22c55e; /* green-500 */
+      border-bottom: 6px solid #15803d; /* green-700 */
     }
 
-    /* Custom Scrollbar */
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #d8b4fe; border-radius: 10px; }
-    ::-webkit-scrollbar-thumb:hover { background: #a855f7; }
+    /* Scrollbar hide */
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
   </style>
   <style>@view-transition { navigation: auto; }</style>
   <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
-</head>
-
-<body class="h-full m-0 p-0 overflow-x-hidden bg-gradient-to-br from-yellow-50 via-pink-50 to-purple-100 text-slate-800">
+ </head>
+ <body class="h-full m-0 p-0 overflow-hidden bg-amber-50">
   
-  <div id="app" class="w-full max-w-4xl mx-auto min-h-full flex flex-col p-4">
+  <div id="app" class="w-full h-full flex flex-col max-w-4xl mx-auto bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]">
     
-    <header class="text-center mb-6 relative z-10">
-      <div class="inline-block relative">
-        <h1 id="main-title" class="text-3xl md:text-4xl font-black text-purple-600 tracking-tight drop-shadow-sm mb-1">
-          🎈 Ayo Membaca!
-        </h1>
-        <div class="absolute -top-4 -right-6 text-2xl animate-bounce hidden md:block">✨</div>
-      </div>
-      <p id="instruction" class="text-slate-500 font-medium text-sm md:text-base bg-white/50 inline-block px-4 py-1 rounded-full mt-2">
-        Tap kartu untuk mendengar suara ✨
+    <header class="pt-6 pb-2 px-4 text-center shrink-0 z-10">
+      <h1 id="main-title" class="text-3xl md:text-4xl font-bold text-purple-600 drop-shadow-sm tracking-wide mb-1">
+        🎈 Ayo Membaca!
+      </h1>
+      <p id="instruction" class="text-slate-500 text-sm font-medium bg-white/80 inline-block px-3 py-1 rounded-full backdrop-blur-sm border border-slate-200">
+        Tap kartu untuk mendengar suaranya 🔊
       </p>
     </header>
 
-    <div class="glass-panel rounded-3xl p-3 mb-6 shadow-lg shadow-purple-100">
+    <div class="px-4 py-2 shrink-0">
+      <div class="flex gap-2 overflow-x-auto hide-scrollbar pb-2" id="category-container">
+        </div>
+    </div>
+
+    <div class="px-6 py-1 shrink-0">
+      <div class="flex justify-between items-end mb-1">
+        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Level Ini</span>
+        <span id="progress-text" class="text-sm font-bold text-purple-600">0/12</span>
+      </div>
+      <div class="h-4 w-full bg-slate-200 rounded-full overflow-hidden shadow-inner">
+        <div id="progress-bar" class="h-full bg-gradient-to-r from-yellow-400 via-orange-400 to-red-500 w-0 transition-all duration-500 ease-out rounded-full"></div>
+      </div>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-4" id="scroll-area">
+      <div id="cards-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 pb-20">
+        </div>
       
-      <div class="flex overflow-x-auto pb-2 md:pb-0 gap-2 mb-4 scrollbar-hide snap-x">
-        <button onclick="setCategory('semua')" data-cat="semua" class="cat-btn snap-start whitespace-nowrap flex-shrink-0 px-4 py-2 rounded-xl font-bold text-sm transition-all border-2 border-transparent hover:bg-white/50">
-          🌟 Semua
-        </button>
-        <button onclick="setCategory('konsonan-vokal')" data-cat="konsonan-vokal" class="cat-btn snap-start whitespace-nowrap flex-shrink-0 px-4 py-2 rounded-xl font-bold text-sm transition-all border-2 border-transparent hover:bg-white/50">
-          🅰️ ba, ca
-        </button>
-        <button onclick="setCategory('vokal-konsonan')" data-cat="vokal-konsonan" class="cat-btn snap-start whitespace-nowrap flex-shrink-0 px-4 py-2 rounded-xl font-bold text-sm transition-all border-2 border-transparent hover:bg-white/50">
-          🔤 an, ir
-        </button>
-        <button onclick="setCategory('konsonan-vokal-konsonan')" data-cat="konsonan-vokal-konsonan" class="cat-btn snap-start whitespace-nowrap flex-shrink-0 px-4 py-2 rounded-xl font-bold text-sm transition-all border-2 border-transparent hover:bg-white/50">
-          📚 bak, sir
-        </button>
-        <button onclick="setCategory('diftong')" data-cat="diftong" class="cat-btn snap-start whitespace-nowrap flex-shrink-0 px-4 py-2 rounded-xl font-bold text-sm transition-all border-2 border-transparent hover:bg-white/50">
-          🎵 ai, au
-        </button>
-      </div>
-
-      <div class="flex items-center gap-3 bg-white/60 p-3 rounded-2xl border border-white">
-        <div class="flex-grow h-4 bg-slate-200 rounded-full overflow-hidden shadow-inner relative">
-          <div id="progress-bar" class="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-700 ease-out flex items-center justify-end pr-1" style="width: 0%">
-            <div class="w-2 h-2 bg-white rounded-full opacity-50 animate-pulse"></div>
-          </div>
-        </div>
-        <span id="progress-text" class="text-purple-700 font-black text-sm w-16 text-right font-mono">0/0</span>
+      <div id="pagination-controls" class="flex justify-center gap-4 mt-6 mb-8 hidden">
+         <button onclick="changePage(-1)" class="btn-3d px-6 py-2 bg-slate-200 text-slate-600 rounded-xl font-bold">⬅️ Sebelumnya</button>
+         <button onclick="changePage(1)" class="btn-3d px-6 py-2 bg-purple-500 text-white rounded-xl font-bold">Selanjutnya ➡️</button>
       </div>
     </div>
 
-    <div id="cards-container" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 mb-24 md:mb-8 pb-4">
-      </div>
-
-    <div class="fixed bottom-0 left-0 right-0 p-4 md:static md:p-0 md:bg-transparent z-40 bg-white/80 backdrop-blur-md md:backdrop-filter-none border-t md:border-none border-slate-200">
-      <div class="max-w-4xl mx-auto flex flex-col md:flex-row gap-3">
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 w-full">
-            
-            <button onclick="shuffleCards()" class="chunky-btn bg-teal-500 hover:bg-teal-400 text-white py-3 rounded-2xl font-bold flex items-center justify-center gap-2">
-                🔀 <span class="hidden md:inline">Acak</span>
-            </button>
-            
-            <button onclick="resetProgress()" class="chunky-btn bg-orange-400 hover:bg-orange-300 text-white py-3 rounded-2xl font-bold flex items-center justify-center gap-2">
-                🔄 <span class="hidden md:inline">Ulang</span>
-            </button>
-
-            <button id="btn-speak-all" onclick="toggleSpeakAll()" class="chunky-btn bg-pink-500 hover:bg-pink-400 text-white py-3 rounded-2xl font-bold flex items-center justify-center gap-2 col-span-2 md:col-span-2">
-                <span id="icon-play">▶️</span> <span id="text-play">Putar Semua</span>
-            </button>
-        </div>
+    <div class="p-4 bg-white/90 backdrop-blur-md border-t border-slate-200 shrink-0 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] rounded-t-3xl z-20">
+      <div class="flex gap-3">
+        <button onclick="shuffleAndReset()" class="btn-3d flex-1 py-3 bg-cyan-500 text-white font-bold rounded-2xl shadow-sm text-lg flex items-center justify-center gap-2">
+          🎲 Acak
+        </button>
+        <button onclick="resetCurrentPage()" class="btn-3d w-16 py-3 bg-orange-400 text-white font-bold rounded-2xl shadow-sm flex items-center justify-center">
+          🔄
+        </button>
       </div>
     </div>
-    
-    <div id="mascot-container" class="fixed bottom-24 right-4 md:bottom-8 md:right-8 pointer-events-none z-30 transition-all duration-300 opacity-80 md:opacity-100">
-      <div id="mascot" class="text-center mascot-float">
-        <div class="text-5 md:text-6xl drop-shadow-lg filter">🐻</div>
-        <div id="encouragement-bubble" class="bg-white px-3 py-1.5 rounded-xl rounded-tr-none text-xs font-bold text-purple-600 shadow-md border-2 border-purple-100 mt-1 absolute -top-8 -left-20 w-32 whitespace-normal break-words">
-            Ayo mulai!
-        </div>
-      </div>
+
+    <div id="mascot-container" class="fixed bottom-24 right-4 pointer-events-none z-30 transition-transform duration-300">
+      <div class="text-6xl filter drop-shadow-xl animate-bounce" id="mascot-emoji">🐻</div>
     </div>
 
     <div id="celebration" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 hidden transition-opacity duration-300 opacity-0">
-      <div class="bg-white rounded-[2rem] p-8 text-center max-w-sm mx-4 shadow-2xl transform scale-90 transition-transform duration-300 relative overflow-hidden">
-        <div class="absolute inset-0 bg-gradient-to-b from-yellow-100/50 to-transparent pointer-events-none"></div>
-        <div class="text-8xl mb-4 animate-bounce">🎉</div>
-        <h2 class="text-3xl font-black text-purple-600 mb-2">Hebat!</h2>
-        <p class="text-slate-500 font-medium mb-6">Kamu sudah membaca semua kartu di bagian ini.</p>
-        <button onclick="closeCelebration()" class="w-full py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-2xl shadow-lg shadow-purple-200 active:scale-95 transition-transform text-lg">
-          Lanjut Belajar! 🚀
+      <div class="bg-white rounded-3xl p-8 text-center max-w-sm mx-4 shadow-2xl transform scale-90 transition-transform duration-300" id="celebration-content">
+        <div class="text-8xl mb-4 animate-pulse">🌟</div>
+        <h2 class="text-3xl font-bold text-purple-600 mb-2">Luar Biasa!</h2>
+        <p class="text-slate-500 mb-6 text-lg">Kamu menyelesaikan halaman ini!</p>
+        <button onclick="closeCelebration()" class="w-full btn-3d py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-2xl text-xl shadow-lg">
+          Lanjut Main! 🚀
         </button>
       </div>
     </div>
@@ -184,374 +125,339 @@
   </div>
 
   <script>
-    // --- Configuration ---
-    const defaultConfig = {
-      app_title: '🎈 Ayo Membaca! 🎈',
-      instruction_text: 'Tap kartu untuk mendengar suara ✨',
-      primary_color: '#9333ea', // Purple 600
-      secondary_color: '#ffffff',
-      accent_color: '#14b8a6',
-      text_color: '#7c3aed',
-      background_color: '#fef3c7',
-      font_family: 'Fredoka',
-      font_size: 16
+    // --- CONFIGURATION & DATA ---
+    const CONFIG = {
+      itemsPerPage: 12, // LIMIT kartu agar tidak pusing
+      speakRate: 0.8,
+      speakPitch: 1.1
     };
-    
-    let config = { ...defaultConfig };
-    
-    // --- Data ---
-    const syllableData = {
+
+    // Data Suku Kata Lengkap
+    const SYLLABLE_DATA = {
       'konsonan-vokal': [
-        { text: 'ba', emoji: '🍌', word: 'baju' }, { text: 'bi', emoji: '💫', word: 'biru' },
-        { text: 'bu', emoji: '🌙', word: 'buku' }, { text: 'ca', emoji: '🐛', word: 'cacing' },
-        { text: 'ci', emoji: '💋', word: 'cium' }, { text: 'da', emoji: '🎲', word: 'dadu' },
-        { text: 'di', emoji: '🧱', word: 'dinding' }, { text: 'du', emoji: '🌵', word: 'duri' },
-        { text: 'ga', emoji: '🐘', word: 'gajah' }, { text: 'gu', emoji: '⛰️', word: 'gunung' },
-        { text: 'ha', emoji: '🐯', word: 'harimau' }, { text: 'ja', emoji: '⏰', word: 'jam' },
-        { text: 'ka', emoji: '🦶', word: 'kaki' }, { text: 'ki', emoji: '⬅️', word: 'kiri' },
-        { text: 'ku', emoji: '🐱', word: 'kucing' }, { text: 'la', emoji: '🌊', word: 'laut' },
-        { text: 'li', emoji: '🕯️', word: 'lilin' }, { text: 'ma', emoji: '👁️', word: 'mata' },
-        { text: 'mi', emoji: '🍜', word: 'mie' }, { text: 'mu', emoji: '👄', word: 'mulut' },
-        { text: 'na', emoji: '🍚', word: 'nasi' }, { text: 'pa', emoji: '🏠', word: 'pagar' },
-        { text: 'pi', emoji: '🔪', word: 'pisau' }, { text: 'ra', emoji: '👑', word: 'raja' },
-        { text: 'ri', emoji: '🦁', word: 'riang' }, { text: 'sa', emoji: '🐄', word: 'sapi' },
-        { text: 'si', emoji: '🪥', word: 'sikat' }, { text: 'su', emoji: '🥛', word: 'susu' },
-        { text: 'ta', emoji: '🖐️', word: 'tangan' }, { text: 'ti', emoji: '📺', word: 'tivi' },
-        { text: 'tu', emoji: '🦴', word: 'tulang' }, { text: 'wa', emoji: '🎨', word: 'warna' },
+        { text: 'ba', emoji: '🍌', word: 'baju' }, { text: 'be', emoji: '🐻', word: 'beruang' }, { text: 'bi', emoji: '💫', word: 'biru' }, { text: 'bo', emoji: '⚽', word: 'bola' }, { text: 'bu', emoji: '🌙', word: 'buku' },
+        { text: 'ca', emoji: '🐛', word: 'cacing' }, { text: 'ce', emoji: '🥤', word: 'ceret' }, { text: 'ci', emoji: '💋', word: 'cium' }, { text: 'co', emoji: '🍫', word: 'coklat' }, { text: 'cu', emoji: '🧼', word: 'cuci' },
+        { text: 'da', emoji: '🎲', word: 'dadu' }, { text: 'de', emoji: '💗', word: 'dekat' }, { text: 'di', emoji: '🧱', word: 'dinding' }, { text: 'do', emoji: '🙏', word: 'doa' }, { text: 'du', emoji: '🌵', word: 'duri' },
+        { text: 'ga', emoji: '🐘', word: 'gajah' }, { text: 'ge', emoji: '⛪', word: 'gereja' }, { text: 'gi', emoji: '🦷', word: 'gigi' }, { text: 'go', emoji: '🥁', word: 'gong' }, { text: 'gu', emoji: '⛰️', word: 'gunung' },
+        { text: 'ha', emoji: '🐯', word: 'harimau' }, { text: 'he', emoji: '🐑', word: 'hebat' }, { text: 'hi', emoji: '🟢', word: 'hijau' }, { text: 'ho', emoji: '🎅', word: 'hobi' }, { text: 'hu', emoji: '🌲', word: 'hutan' },
+        { text: 'ja', emoji: '⏰', word: 'jam' }, { text: 'je', emoji: '🪟', word: 'jendela' }, { text: 'ji', emoji: '🧡', word: 'jingga' }, { text: 'jo', emoji: '👍', word: 'jomblo' }, { text: 'ju', emoji: '🎪', word: 'jual' },
+        { text: 'ka', emoji: '🦶', word: 'kaki' }, { text: 'ke', emoji: '🧀', word: 'keju' }, { text: 'ki', emoji: '⬅️', word: 'kiri' }, { text: 'ko', emoji: '📦', word: 'kotak' }, { text: 'ku', emoji: '🐱', word: 'kucing' },
+        { text: 'la', emoji: '🌊', word: 'laut' }, { text: 'le', emoji: '🐆', word: 'leopard' }, { text: 'li', emoji: '🕯️', word: 'lilin' }, { text: 'lo', emoji: '🪟', word: 'lobang' }, { text: 'lu', emoji: '🦜', word: 'lucu' },
+        { text: 'ma', emoji: '👁️', word: 'mata' }, { text: 'me', emoji: '🍉', word: 'melon' }, { text: 'mi', emoji: '🍜', word: 'mie' }, { text: 'mo', emoji: '🚗', word: 'mobil' }, { text: 'mu', emoji: '👄', word: 'mulut' },
+        { text: 'na', emoji: '🍚', word: 'nasi' }, { text: 'ne', emoji: '👵', word: 'nenek' }, { text: 'ni', emoji: '💍', word: 'nikah' }, { text: 'no', emoji: '🔢', word: 'nomor' }, { text: 'nu', emoji: '🥥', word: 'nyiur' },
+        { text: 'pa', emoji: '🏠', word: 'pagar' }, { text: 'pe', emoji: '✏️', word: 'pensil' }, { text: 'pi', emoji: '🔪', word: 'pisau' }, { text: 'po', emoji: '🌳', word: 'pohon' }, { text: 'pu', emoji: '👸', word: 'putri' },
+        { text: 'ra', emoji: '👑', word: 'raja' }, { text: 're', emoji: '🤝', word: 'rekan' }, { text: 'ri', emoji: '🦁', word: 'riang' }, { text: 'ro', emoji: '🍞', word: 'roti' }, { text: 'ru', emoji: '🏠', word: 'rumah' },
+        { text: 'sa', emoji: '🐄', word: 'sapi' }, { text: 'se', emoji: '👟', word: 'sepatu' }, { text: 'si', emoji: '🪥', word: 'sikat' }, { text: 'so', emoji: '🥤', word: 'soda' }, { text: 'su', emoji: '🥛', word: 'susu' },
+        { text: 'ta', emoji: '🖐️', word: 'tangan' }, { text: 'te', emoji: '🥚', word: 'telur' }, { text: 'ti', emoji: '📺', word: 'tivi' }, { text: 'to', emoji: '🍅', word: 'tomat' }, { text: 'tu', emoji: '🦴', word: 'tulang' },
+        { text: 'wa', emoji: '🎨', word: 'warna' }, { text: 'we', emoji: '🏃', word: 'wewangian' }, { text: 'wi', emoji: '🎓', word: 'wisuda' }, { text: 'wo', emoji: '🧔', word: 'wolu' }, { text: 'wu', emoji: '🏔️', word: 'wulung' },
+        { text: 'ya', emoji: '✅', word: 'ya' }, { text: 'ye', emoji: '👍', word: 'yel' }, { text: 'yi', emoji: '🎯', word: 'yin' }, { text: 'yo', emoji: '🎤', word: 'yoyo' }, { text: 'yu', emoji: '🚶', word: 'yuk' },
+        { text: 'za', emoji: '💎', word: 'zaman' }, { text: 'ze', emoji: '🦓', word: 'zebra' }, { text: 'zi', emoji: '🎒', word: 'ziarah' }, { text: 'zo', emoji: '🦁', word: 'zoo' }, { text: 'zu', emoji: '🧬', word: 'zulu' }
       ],
       'vokal-konsonan': [
-        { text: 'an', emoji: '🐕', word: 'anjing' }, { text: 'in', emoji: '💎', word: 'intan' },
-        { text: 'un', emoji: '💜', word: 'ungu' }, { text: 'ang', emoji: '💨', word: 'angin' },
-        { text: 'ing', emoji: '🐝', word: 'bising' }, { text: 'ung', emoji: '🟣', word: 'ungu' },
-        { text: 'ar', emoji: '🦅', word: 'elang' }, { text: 'ir', emoji: '💧', word: 'air' },
-        { text: 'ur', emoji: '✨', word: 'cahaya' }, { text: 'ak', emoji: '👶', word: 'anak' },
-        { text: 'ik', emoji: '🐟', word: 'ikan' }, { text: 'uk', emoji: '📖', word: 'buku' },
-        { text: 'al', emoji: '🔥', word: 'amal' }, { text: 'il', emoji: '🧪', word: 'ilmu' },
-        { text: 'ul', emoji: '🐛', word: 'ulat' }, { text: 'am', emoji: '🕐', word: 'jam' },
-        { text: 'im', emoji: '🌟', word: 'impian' }, { text: 'um', emoji: '🏠', word: 'rumah' },
-        { text: 'as', emoji: '💨', word: 'asap' }, { text: 'is', emoji: '🧊', word: 'isap' },
-        { text: 'us', emoji: '🚌', word: 'usap' },
+        { text: 'an', emoji: '🐕', word: 'anjing' }, { text: 'en', emoji: '😋', word: 'enak' }, { text: 'in', emoji: '💎', word: 'intan' }, { text: 'on', emoji: '🔛', word: 'ondel' }, { text: 'un', emoji: '💜', word: 'ungu' },
+        { text: 'ang', emoji: '💨', word: 'angin' }, { text: 'eng', emoji: '🎯', word: 'engkau' }, { text: 'ing', emoji: '🐝', word: 'eling' }, { text: 'ong', emoji: '🦍', word: 'gorila' }, { text: 'ung', emoji: '🟣', word: 'ungu' },
+        { text: 'ar', emoji: '🦅', word: 'arah' }, { text: 'er', emoji: '🧱', word: 'ember' }, { text: 'ir', emoji: '💧', word: 'air' }, { text: 'or', emoji: '🎺', word: 'orkes' }, { text: 'ur', emoji: '✨', word: 'huruf' },
+        { text: 'ak', emoji: '👶', word: 'anak' }, { text: 'ek', emoji: '👂', word: 'ekor' }, { text: 'ik', emoji: '🐟', word: 'ikan' }, { text: 'ok', emoji: '👌', word: 'tokoh' }, { text: 'uk', emoji: '📖', word: 'buku' },
+        { text: 'al', emoji: '🔥', word: 'amal' }, { text: 'el', emoji: '🎸', word: 'gelas' }, { text: 'il', emoji: '🧪', word: 'ilmu' }, { text: 'ol', emoji: '⚽', word: 'bola' }, { text: 'ul', emoji: '🐛', word: 'ulat' },
+        { text: 'am', emoji: '🕐', word: 'aman' }, { text: 'em', emoji: '🥇', word: 'emas' }, { text: 'im', emoji: '🌟', word: 'impian' }, { text: 'om', emoji: '👨', word: 'om' }, { text: 'um', emoji: '🏠', word: 'umum' },
+        { text: 'as', emoji: '💨', word: 'asap' }, { text: 'es', emoji: '🧊', word: 'es' }, { text: 'is', emoji: '📋', word: 'isi' }, { text: 'os', emoji: '💀', word: 'fosil' }, { text: 'us', emoji: '🚌', word: 'bus' },
+        { text: 'at', emoji: '🏋️', word: 'berat' }, { text: 'et', emoji: '🎫', word: 'tiket' }, { text: 'it', emoji: '🦆', word: 'bebek' }, { text: 'ot', emoji: '🚗', word: 'motor' }, { text: 'ut', emoji: '🪢', word: 'ikut' },
+        { text: 'ap', emoji: '🔥', word: 'api' }, { text: 'ep', emoji: '🚶', word: 'sepeda' }, { text: 'ip', emoji: '💤', word: 'tipis' }, { text: 'op', emoji: '🏪', word: 'toko' }, { text: 'up', emoji: '🎈', word: 'upacara' }
       ],
       'konsonan-vokal-konsonan': [
-        { text: 'bak', emoji: '🛁', word: 'bak mandi' }, { text: 'ban', emoji: '🛞', word: 'ban' },
-        { text: 'bas', emoji: '🚌', word: 'bas' }, { text: 'cat', emoji: '🎨', word: 'cat' },
-        { text: 'dan', emoji: '➕', word: 'dan' }, { text: 'gas', emoji: '⛽', word: 'gas' },
-        { text: 'jam', emoji: '⏰', word: 'jam' }, { text: 'kas', emoji: '💰', word: 'kas' },
-        { text: 'lap', emoji: '🧹', word: 'lap' }, { text: 'mal', emoji: '🛒', word: 'mal' },
-        { text: 'pak', emoji: '👨', word: 'bapak' }, { text: 'pil', emoji: '💊', word: 'pil' },
-        { text: 'rok', emoji: '👗', word: 'rok' }, { text: 'sir', emoji: '🔊', word: 'sirine' },
-        { text: 'tas', emoji: '🎒', word: 'tas' }, { text: 'tik', emoji: '✅', word: 'centik' },
-        { text: 'tul', emoji: '✏️', word: 'pensil' }, { text: 'wan', emoji: '🦸', word: 'pahlawan' },
+        { text: 'bak', emoji: '🛁', word: 'bak' }, { text: 'ban', emoji: '🛞', word: 'ban' }, { text: 'bas', emoji: '🚌', word: 'bas' }, { text: 'bel', emoji: '🔔', word: 'bel' }, { text: 'bis', emoji: '🚍', word: 'bis' },
+        { text: 'bok', emoji: '📦', word: 'box' }, { text: 'bom', emoji: '💣', word: 'bom' }, { text: 'bor', emoji: '🔨', word: 'bor' }, { text: 'bus', emoji: '🚌', word: 'bus' }, { text: 'but', emoji: '🎣', word: 'but' },
+        { text: 'cap', emoji: '👆', word: 'cap' }, { text: 'cat', emoji: '🎨', word: 'cat' }, { text: 'cek', emoji: '✅', word: 'cek' }, { text: 'cin', emoji: '💍', word: 'cincin' }, { text: 'cop', emoji: '🥤', word: 'cop' },
+        { text: 'dam', emoji: '🎯', word: 'dam' }, { text: 'dan', emoji: '➕', word: 'dan' }, { text: 'dem', emoji: '🤒', word: 'demam' }, { text: 'din', emoji: '❄️', word: 'dingin' }, { text: 'dok', emoji: '👨‍⚕️', word: 'dokter' },
+        { text: 'gam', emoji: '🖼️', word: 'gambar' }, { text: 'gas', emoji: '⛽', word: 'gas' }, { text: 'gel', emoji: '💇', word: 'gel' }, { text: 'gol', emoji: '⚽', word: 'gol' }, { text: 'guk', emoji: '🐕', word: 'guk' },
+        { text: 'hal', emoji: '📄', word: 'halaman' }, { text: 'ham', emoji: '🐹', word: 'hamster' }, { text: 'hat', emoji: '❤️', word: 'hati' }, { text: 'him', emoji: '🎵', word: 'himne' }, { text: 'hit', emoji: '⚫', word: 'hitam' },
+        { text: 'jak', emoji: '🧥', word: 'jaket' }, { text: 'jam', emoji: '⏰', word: 'jam' }, { text: 'jat', emoji: '🍂', word: 'jatuh' }, { text: 'jip', emoji: '🚙', word: 'jip' }, { text: 'jok', emoji: '💺', word: 'jok' },
+        { text: 'kak', emoji: '👧', word: 'kakak' }, { text: 'kal', emoji: '🧮', word: 'kalkulator' }, { text: 'kam', emoji: '🏕️', word: 'kamp' }, { text: 'kan', emoji: '🐟', word: 'ikan' }, { text: 'kas', emoji: '💰', word: 'kas' },
+        { text: 'lam', emoji: '💡', word: 'lampu' }, { text: 'lan', emoji: '🛣️', word: 'jalan' }, { text: 'lap', emoji: '🧹', word: 'lap' }, { text: 'las', emoji: '⚡', word: 'las' }, { text: 'lat', emoji: '🏃', word: 'lat' },
+        { text: 'mak', emoji: '👩', word: 'mama' }, { text: 'mal', emoji: '🛒', word: 'mal' }, { text: 'mam', emoji: '🍲', word: 'makan' }, { text: 'man', emoji: '🧔', word: 'paman' }, { text: 'map', emoji: '📁', word: 'map' },
+        { text: 'nak', emoji: '👶', word: 'anak' }, { text: 'nam', emoji: '6️⃣', word: 'enam' }, { text: 'nan', emoji: '🍍', word: 'nanas' }, { text: 'nek', emoji: '👵', word: 'nenek' }, { text: 'net', emoji: '🎾', word: 'net' },
+        { text: 'pak', emoji: '👨', word: 'bapak' }, { text: 'pan', emoji: '🍳', word: 'panci' }, { text: 'pas', emoji: '🎯', word: 'pas' }, { text: 'pat', emoji: '4️⃣', word: 'empat' }, { text: 'pel', emoji: '🧹', word: 'pel' },
+        { text: 'rak', emoji: '🗄️', word: 'rak' }, { text: 'ram', emoji: '🐏', word: 'domba' }, { text: 'ran', emoji: '🎒', word: 'ransel' }, { text: 'rap', emoji: '🎤', word: 'rap' }, { text: 'rat', emoji: '🐭', word: 'tikus' },
+        { text: 'sak', emoji: '💰', word: 'saku' }, { text: 'sal', emoji: '🧣', word: 'syal' }, { text: 'sam', emoji: '🗑️', word: 'sampah' }, { text: 'san', emoji: '🏖️', word: 'pasir' }, { text: 'sap', emoji: '🧹', word: 'sapu' },
+        { text: 'tak', emoji: '🧠', word: 'otak' }, { text: 'tal', emoji: '🧶', word: 'tali' }, { text: 'tam', emoji: '🌳', word: 'taman' }, { text: 'tan', emoji: '🌱', word: 'tanah' }, { text: 'tap', emoji: '👣', word: 'tap' },
+        { text: 'wak', emoji: '⏰', word: 'waktu' }, { text: 'wan', emoji: '☁️', word: 'awan' }, { text: 'wat', emoji: '💡', word: 'watt' }, { text: 'web', emoji: '🌐', word: 'web' }, { text: 'wet', emoji: '💦', word: 'awet' }
       ],
       'diftong': [
-        { text: 'ai', emoji: '💧', word: 'air' }, { text: 'au', emoji: '🐃', word: 'kerbau' },
-        { text: 'oi', emoji: '👋', word: 'amboi' }, { text: 'ei', emoji: '🎯', word: 'survei' },
-        { text: 'nya', emoji: '🐱', word: 'nyanyi' }, { text: 'nge', emoji: '😭', word: 'renge' },
-        { text: 'nga', emoji: '💬', word: 'nganga' }, { text: 'ngi', emoji: '🎵', word: 'ngilu' },
+        { text: 'ai', emoji: '💧', word: 'air' }, { text: 'au', emoji: '🐃', word: 'kerbau' }, { text: 'oi', emoji: '👋', word: 'amboi' }, { text: 'ei', emoji: '🎯', word: 'survei' },
+        { text: 'nya', emoji: '🐱', word: 'kucingnya' }, { text: 'nga', emoji: '👄', word: 'nganga' }, { text: 'nge', emoji: '🎢', word: 'ngebut' }, { text: 'ngi', emoji: '🌈', word: 'pelangi' }, { text: 'ngo', emoji: '🗣️', word: 'ngomel' },
+        { text: 'kha', emoji: '👳', word: 'khusus' }, { text: 'khi', emoji: '⛪', word: 'akhir' }, { text: 'sya', emoji: '🧣', word: 'syal' }, { text: 'syu', emoji: '🙏', word: 'syukur' }
       ]
     };
 
-    // --- State ---
-    let currentCategory = 'semua';
-    let displayedCards = [];
-    let readCards = new Set();
-    let isAutoPlaying = false;
-    let autoPlayQueue = [];
-    let synthesis = window.speechSynthesis;
+    // --- APP STATE ---
+    let state = {
+      activeCategory: 'semua',
+      allCards: [],
+      currentCards: [],
+      readCards: new Set(),
+      currentPage: 0,
+      totalPages: 0,
+      audioCtx: null
+    };
 
-    // --- Core Logic ---
+    const categories = [
+      { id: 'semua', label: '🌟 Semua', color: 'from-purple-500 to-indigo-500' },
+      { id: 'konsonan-vokal', label: '🅰️ Ba-Bi-Bu', color: 'from-blue-400 to-cyan-400' },
+      { id: 'vokal-konsonan', label: '🔤 An-In-Un', color: 'from-green-400 to-emerald-500' },
+      { id: 'konsonan-vokal-konsonan', label: '📚 Bak-Bis', color: 'from-orange-400 to-amber-500' },
+      { id: 'diftong', label: '🎵 Ai-Au-Nya', color: 'from-pink-500 to-rose-500' }
+    ];
 
-    function getSyllablesByCategory(category) {
-      if (category === 'semua') return Object.values(syllableData).flat();
-      return syllableData[category] || [];
+    // --- INITIALIZATION ---
+    function init() {
+      // Setup Categories
+      const catContainer = document.getElementById('category-container');
+      catContainer.innerHTML = categories.map(cat => `
+        <button onclick="setCategory('${cat.id}')" 
+          id="btn-${cat.id}"
+          class="cat-btn flex-shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-all active:scale-95 border-b-4 border-transparent
+          ${cat.id === 'semua' ? `bg-gradient-to-r ${cat.color} text-white border-black/20` : 'bg-white text-slate-500 border-slate-200'}">
+          ${cat.label}
+        </button>
+      `).join('');
+
+      loadCategory('semua');
+      
+      // Init Audio Context for SFX on first interaction
+      document.body.addEventListener('click', initAudio, { once: true });
     }
 
-    function setCategory(category) {
-      stopAutoPlay();
-      currentCategory = category;
-      readCards.clear();
-      
-      // Update Tab UI
-      document.querySelectorAll('.cat-btn').forEach(btn => {
-        const isSelected = btn.dataset.cat === category;
-        if (isSelected) {
-            btn.className = 'cat-btn snap-start whitespace-nowrap flex-shrink-0 px-5 py-2 rounded-xl font-bold text-sm transition-all text-white bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg shadow-purple-200 transform scale-105';
+    function initAudio() {
+      if (!state.audioCtx) {
+        state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    // --- LOGIC ---
+
+    function getCombinedData() {
+      return Object.values(SYLLABLE_DATA).flat();
+    }
+
+    function loadCategory(catId) {
+      state.activeCategory = catId;
+      state.readCards.clear();
+      state.currentPage = 0;
+
+      // Update Buttons UI
+      categories.forEach(cat => {
+        const btn = document.getElementById(`btn-${cat.id}`);
+        if (cat.id === catId) {
+          btn.className = `cat-btn flex-shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-all transform scale-105 active:scale-95 border-b-4 border-black/20 bg-gradient-to-r ${cat.color} text-white shadow-lg`;
         } else {
-            btn.className = 'cat-btn snap-start whitespace-nowrap flex-shrink-0 px-4 py-2 rounded-xl font-bold text-sm transition-all text-purple-600 bg-white/50 border border-transparent hover:bg-white';
+          btn.className = `cat-btn flex-shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-all active:scale-95 border-b-4 border-slate-200 bg-white text-slate-500 hover:bg-slate-50`;
         }
       });
+
+      // Fetch Data
+      let data = catId === 'semua' ? getCombinedData() : (SYLLABLE_DATA[catId] || []);
       
-      renderCards();
-      updateProgress();
-      updateEncouragement(0);
+      // Shuffle slightly for variety, but keep mostly ordered for learning
+      if (catId === 'semua') {
+         data = data.sort(() => Math.random() - 0.5);
+      }
+      
+      state.allCards = data;
+      state.totalPages = Math.ceil(data.length / CONFIG.itemsPerPage);
+      
+      renderPage();
     }
 
-    function renderCards() {
+    function renderPage() {
+      const start = state.currentPage * CONFIG.itemsPerPage;
+      const end = start + CONFIG.itemsPerPage;
+      state.currentCards = state.allCards.slice(start, end);
+
       const container = document.getElementById('cards-container');
-      displayedCards = getSyllablesByCategory(currentCategory);
-      
-      container.innerHTML = displayedCards.map((item, index) => {
-        const isRead = readCards.has(item.text);
-        return `
-        <button 
-          onclick="handleCardClick('${item.text}', ${index})"
-          id="card-${index}"
-          class="chunky-card group relative bg-white rounded-2xl p-2 md:p-4 flex flex-col items-center justify-between min-h-[140px] md:min-h-[160px] card-enter ${isRead ? 'is-read bg-green-50' : ''}"
-          style="animation-delay: ${index * 0.03}s"
-        >
-          <span class="text-4xl md:text-5xl mt-2 group-hover:scale-110 transition-transform duration-300 filter drop-shadow-sm">${item.emoji}</span>
-          
-          <div class="flex flex-col items-center w-full">
-            <span class="text-3xl md:text-4xl font-black text-slate-700 tracking-wide mb-1">${item.text}</span>
-            <span class="text-xs md:text-sm font-semibold text-slate-400 opacity-0 group-hover:opacity-100 ${isRead ? 'opacity-100 text-green-600' : ''} transition-opacity duration-300 bg-slate-100 px-2 py-0.5 rounded-full">
-                ${item.word}
-            </span>
-          </div>
+      container.innerHTML = ''; // Clear
 
-          ${isRead ? '<div class="absolute top-2 right-2 bg-green-400 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] shadow-sm">✓</div>' : ''}
-        </button>
-      `}).join('');
+      state.currentCards.forEach((item, idx) => {
+        const isRead = state.readCards.has(item.text);
+        const card = document.createElement('button');
+        card.id = `card-${idx}`;
+        card.className = `relative aspect-square rounded-2xl flex flex-col items-center justify-center p-2 transition-all active:scale-95 cursor-pointer card-enter btn-3d ${isRead ? 'card-read' : 'card-unread'}`;
+        card.style.animationDelay = `${idx * 0.05}s`;
+        card.onclick = () => speakCard(item, idx);
+        
+        card.innerHTML = `
+          <div class="text-4xl mb-2 filter drop-shadow-sm transition-transform duration-300 group-hover:scale-110">${item.emoji}</div>
+          <div class="text-2xl md:text-3xl font-black text-slate-700 tracking-tight">${item.text}</div>
+          ${isRead ? '<div class="absolute top-2 right-2 text-green-500 text-xl animate-bounce">✓</div>' : ''}
+        `;
+        container.appendChild(card);
+      });
+
+      updateUI();
     }
 
-    function handleCardClick(text, index) {
-      if (isAutoPlaying) stopAutoPlay();
-      speakSyllable(text, index);
-    }
+    function updateUI() {
+      // Progress
+      const pageTotal = state.currentCards.length;
+      const pageDone = state.currentCards.filter(c => state.readCards.has(c.text)).length;
+      const pct = pageTotal === 0 ? 0 : (pageDone / pageTotal) * 100;
 
-    function speakSyllable(text, index, onComplete) {
-      const card = document.getElementById(`card-${index}`);
-      if(!card) return;
+      document.getElementById('progress-bar').style.width = `${pct}%`;
+      document.getElementById('progress-text').textContent = `${pageDone}/${pageTotal}`;
 
-      // Visual Feedback
-      card.classList.remove('card-enter');
-      void card.offsetWidth; // trigger reflow
-      
-      // Mark as read
-      if (!readCards.has(text)) {
-        readCards.add(text);
-        card.classList.add('is-read', 'bg-green-50');
+      // Pagination Controls
+      const pagEl = document.getElementById('pagination-controls');
+      if (state.totalPages > 1) {
+        pagEl.classList.remove('hidden');
+        pagEl.children[0].disabled = state.currentPage === 0;
+        pagEl.children[0].classList.toggle('opacity-50', state.currentPage === 0);
         
-        // Reveal word permanently
-        const wordLabel = card.querySelector('span:last-child');
-        if(wordLabel) {
-            wordLabel.classList.remove('opacity-0');
-            wordLabel.classList.add('opacity-100', 'text-green-600');
-        }
-
-        // Add checkmark
-        if (!card.querySelector('.absolute.top-2')) {
-            const check = document.createElement('div');
-            check.className = 'absolute top-2 right-2 bg-green-400 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] shadow-sm animate-bounce';
-            check.innerHTML = '✓';
-            card.appendChild(check);
-        }
-        
-        updateProgress();
-        updateEncouragement();
-        
-        if (readCards.size === displayedCards.length) {
-          setTimeout(showCelebration, 800);
-        }
+        pagEl.children[1].disabled = state.currentPage >= state.totalPages - 1;
+        pagEl.children[1].classList.toggle('opacity-50', state.currentPage >= state.totalPages - 1);
+      } else {
+        pagEl.classList.add('hidden');
       }
 
-      // Audio
+      // Check Completion of Page
+      if (pageDone === pageTotal && pageTotal > 0) {
+        setTimeout(showCelebration, 500);
+      }
+    }
+
+    function changePage(delta) {
+      const newPage = state.currentPage + delta;
+      if (newPage >= 0 && newPage < state.totalPages) {
+        state.currentPage = newPage;
+        // Reset read status for new page? No, keep global read status logic if wanted, 
+        // but for this UX, let's treat pages as mini-levels.
+        // We will clear read status visually for the new set unless we track global IDs.
+        // For simplicity: Clear visuals for new random set.
+        state.readCards.clear();
+        renderPage();
+        document.getElementById('scroll-area').scrollTop = 0;
+      }
+    }
+
+    // --- AUDIO & INTERACTIONS ---
+
+    function playSuccessSound() {
+      if (!state.audioCtx) return;
+      const osc = state.audioCtx.createOscillator();
+      const gain = state.audioCtx.createGain();
+      
+      osc.connect(gain);
+      gain.connect(state.audioCtx.destination);
+      
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(500, state.audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(1000, state.audioCtx.currentTime + 0.1);
+      
+      gain.gain.setValueAtTime(0.3, state.audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, state.audioCtx.currentTime + 0.3);
+      
+      osc.start();
+      osc.stop(state.audioCtx.currentTime + 0.3);
+    }
+
+    function speakCard(item, idx) {
+      // Visual feedback
+      const card = document.getElementById(`card-${idx}`);
+      card.classList.add('scale-95');
+      setTimeout(() => card.classList.remove('scale-95'), 150);
+
+      // Speak
       if ('speechSynthesis' in window) {
-        synthesis.cancel(); // Stop current
-        const utterance = new SpeechSynthesisUtterance(text);
+        speechSynthesis.cancel(); // Stop previous
+        const utterance = new SpeechSynthesisUtterance(item.text);
         utterance.lang = 'id-ID';
-        utterance.rate = 0.8; 
-        utterance.pitch = 1.1;
-        
-        // Highlight while speaking
-        card.style.borderColor = '#9333ea';
+        utterance.rate = CONFIG.speakRate;
+        utterance.pitch = CONFIG.speakPitch;
         
         utterance.onend = () => {
-          card.style.borderColor = ''; // Reset border
-          if (onComplete) onComplete();
+          if (!state.readCards.has(item.text)) {
+            state.readCards.add(item.text);
+            playSuccessSound();
+            
+            // Visual Update
+            card.className = card.className.replace('card-unread', 'card-read');
+            card.innerHTML += '<div class="absolute top-2 right-2 text-green-500 text-xl animate-bounce">✓</div>';
+            
+            updateUI();
+            updateMascot();
+          }
         };
         
-        utterance.onerror = () => {
-            // Fallback if audio fails
-            card.style.borderColor = '';
-            if (onComplete) onComplete();
-        }
-
-        synthesis.speak(utterance);
-      } else {
-          // Fallback if no speech
-          if (onComplete) setTimeout(onComplete, 500);
+        speechSynthesis.speak(utterance);
       }
     }
 
-    function toggleSpeakAll() {
-        if (isAutoPlaying) {
-            stopAutoPlay();
-        } else {
-            startAutoPlay();
-        }
+    function shuffleAndReset() {
+      state.allCards = state.allCards.sort(() => Math.random() - 0.5);
+      state.readCards.clear();
+      renderPage();
+    }
+    
+    function resetCurrentPage() {
+      state.readCards.clear();
+      renderPage();
     }
 
-    function startAutoPlay() {
-        isAutoPlaying = true;
-        // UI Change
-        const btn = document.getElementById('btn-speak-all');
-        btn.classList.remove('bg-pink-500', 'hover:bg-pink-400');
-        btn.classList.add('bg-red-500', 'hover:bg-red-400');
-        document.getElementById('icon-play').innerText = '⏹️';
-        document.getElementById('text-play').innerText = 'Stop';
-
-        // Filter unread cards or read all if finished
-        let queueIndices = displayedCards.map((_, i) => i);
-        if (readCards.size < displayedCards.length) {
-             // Only play unread if incomplete
-            queueIndices = displayedCards.map((item, i) => !readCards.has(item.text) ? i : -1).filter(i => i !== -1);
-        }
-
-        playQueue(queueIndices);
-    }
-
-    function playQueue(indices) {
-        if (!isAutoPlaying || indices.length === 0) {
-            stopAutoPlay();
-            return;
-        }
-
-        const currentIndex = indices[0];
-        const currentItem = displayedCards[currentIndex];
-        
-        // Scroll to card
-        const card = document.getElementById(`card-${currentIndex}`);
-        if(card) {
-             card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-             card.classList.add('ring-4', 'ring-purple-300'); // Highlight active
-        }
-
-        speakSyllable(currentItem.text, currentIndex, () => {
-            if(card) card.classList.remove('ring-4', 'ring-purple-300');
-            playQueue(indices.slice(1)); // Recursive next
-        });
-    }
-
-    function stopAutoPlay() {
-        isAutoPlaying = false;
-        synthesis.cancel();
-        
-        const btn = document.getElementById('btn-speak-all');
-        btn.classList.add('bg-pink-500', 'hover:bg-pink-400');
-        btn.classList.remove('bg-red-500', 'hover:bg-red-400');
-        document.getElementById('icon-play').innerText = '▶️';
-        document.getElementById('text-play').innerText = 'Putar Semua';
-        
-        // Remove active rings
-        document.querySelectorAll('.ring-purple-300').forEach(el => el.classList.remove('ring-4', 'ring-purple-300'));
-    }
-
-    function shuffleCards() {
-      stopAutoPlay();
-      displayedCards = displayedCards.sort(() => Math.random() - 0.5);
+    function updateMascot() {
+      const emojis = ['🐻', '🐼', '🐨', '🦁', '🐯'];
+      const el = document.getElementById('mascot-emoji');
+      el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
       
-      // Update DOM manually to keep state correct
-      const container = document.getElementById('cards-container');
-      container.innerHTML = ''; // clear
-      
-      // Small delay for visual effect
+      // Jump animation
+      const container = document.getElementById('mascot-container');
+      container.style.transform = 'translateY(-20px) rotate(10deg)';
       setTimeout(() => {
-          renderCards();
-      }, 50);
-    }
-
-    function resetProgress() {
-      stopAutoPlay();
-      if(confirm('Ulangi progres untuk kategori ini?')) {
-          readCards.clear();
-          renderCards();
-          updateProgress();
-          updateEncouragement();
-      }
-    }
-
-    function updateProgress() {
-      const total = displayedCards.length;
-      const completed = readCards.size;
-      const percentage = total > 0 ? (completed / total) * 100 : 0;
-      
-      document.getElementById('progress-bar').style.width = `${percentage}%`;
-      document.getElementById('progress-text').textContent = `${completed}/${total}`;
-    }
-
-    function updateEncouragement() {
-      const messages = [
-        { threshold: 0, text: 'Ayo mulai!', mascot: '🐻' },
-        { threshold: 20, text: 'Bagus!', mascot: '🐰' },
-        { threshold: 50, text: 'Luar biasa!', mascot: '🦊' },
-        { threshold: 80, text: 'Dikit lagi!', mascot: '🦁' },
-        { threshold: 100, text: 'Juara! 🏆', mascot: '🦄' },
-      ];
-      
-      const percentage = displayedCards.length > 0 ? (readCards.size / displayedCards.length) * 100 : 0;
-      const message = [...messages].reverse().find(m => percentage >= m.threshold);
-      
-      const bubble = document.getElementById('encouragement-bubble');
-      const mascot = document.getElementById('mascot').querySelector('div');
-      
-      if (bubble.innerText !== message.text) {
-          bubble.innerText = message.text;
-          mascot.innerText = message.mascot;
-          
-          // Pop animation
-          mascot.parentElement.classList.remove('mascot-float');
-          void mascot.offsetWidth;
-          mascot.parentElement.classList.add('mascot-float');
-      }
+        container.style.transform = 'translateY(0) rotate(0deg)';
+      }, 300);
     }
 
     function showCelebration() {
       const modal = document.getElementById('celebration');
+      const content = document.getElementById('celebration-content');
       modal.classList.remove('hidden');
-      setTimeout(() => modal.classList.remove('opacity-0'), 10);
-      modal.querySelector('div').classList.remove('scale-90');
-      modal.querySelector('div').classList.add('scale-100');
+      // Force reflow
+      void modal.offsetWidth;
+      modal.classList.remove('opacity-0');
+      content.classList.remove('scale-90');
+      
+      // Play a little victory tune
+      if(state.audioCtx) {
+         // Simple arpeggio
+         [440, 554, 659, 880].forEach((freq, i) => {
+           setTimeout(() => {
+             const osc = state.audioCtx.createOscillator();
+             const gain = state.audioCtx.createGain();
+             osc.connect(gain);
+             gain.connect(state.audioCtx.destination);
+             osc.frequency.value = freq;
+             gain.gain.setValueAtTime(0.2, state.audioCtx.currentTime);
+             gain.gain.exponentialRampToValueAtTime(0.01, state.audioCtx.currentTime + 0.3);
+             osc.start();
+             osc.stop(state.audioCtx.currentTime + 0.3);
+           }, i * 150);
+         });
+      }
     }
 
     function closeCelebration() {
       const modal = document.getElementById('celebration');
       modal.classList.add('opacity-0');
-      modal.querySelector('div').classList.add('scale-90');
-      setTimeout(() => modal.classList.add('hidden'), 300);
+      setTimeout(() => {
+        modal.classList.add('hidden');
+        if (state.currentPage < state.totalPages - 1) {
+          changePage(1);
+        } else {
+          shuffleAndReset(); // Loop back if at end
+        }
+      }, 300);
     }
 
-    // --- SDK Integration ---
-    async function onConfigChange(cfg) {
-      // Basic text updates
-      if(cfg.app_title) document.getElementById('main-title').innerText = cfg.app_title;
-      if(cfg.instruction_text) document.getElementById('instruction').innerText = cfg.instruction_text;
-      
-      // Font updates
-      if(cfg.font_family) document.body.style.fontFamily = `'${cfg.font_family}', sans-serif`;
-      
-      // Color updates (Using CSS Variables would be cleaner, but direct style for now)
-      if(cfg.primary_color) {
-          document.getElementById('main-title').style.color = cfg.primary_color;
-          document.querySelectorAll('.text-purple-600').forEach(el => el.style.color = cfg.primary_color);
-      }
-    }
+    // Run
+    init();
 
-    // Initialize SDK
-    window.elementSdk.init({
-      defaultConfig,
-      onConfigChange,
-      mapToCapabilities: (cfg) => ({
-          fontEditable: { get: () => cfg.font_family, set: (v) => { cfg.font_family = v; } },
-          fontSizeable: { get: () => cfg.font_size, set: (v) => { cfg.font_size = v; } }
-      }),
-      mapToEditPanelValues: (cfg) => new Map([
-          ['app_title', cfg.app_title],
-          ['instruction_text', cfg.instruction_text]
-      ])
-    });
-
-    // Start
-    renderCards();
   </script>
-</body>
+ </body>
 </html>
