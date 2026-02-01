@@ -8,52 +8,48 @@
   <script src="/_sdk/element_sdk.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
   <style>
-    /* --- Custom Styles for Kid-Friendly UI --- */
+    /* --- Styles --- */
     body {
       font-family: 'Fredoka', sans-serif;
-      overscroll-behavior-y: none; /* Prevent pull-to-refresh on mobile */
+      overscroll-behavior-y: none;
+      user-select: none;
     }
     
-    /* Smooth Pop Animation */
+    /* Animations */
     @keyframes pop-in {
       0% { transform: scale(0.8); opacity: 0; }
       100% { transform: scale(1); opacity: 1; }
     }
-    
-    .card-enter {
-      animation: pop-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    @keyframes wiggle {
+      0%, 100% { transform: rotate(-3deg); }
+      50% { transform: rotate(3deg); }
     }
+    .wiggle { animation: wiggle 0.3s ease-in-out infinite; }
+    
+    .card-enter { animation: pop-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
 
-    /* 3D Button/Card Effect */
+    /* 3D Button Effect */
     .btn-3d {
       transition: all 0.1s;
-      border-bottom: 4px solid rgba(0,0,0,0.15);
+      border-bottom: 5px solid rgba(0,0,0,0.15);
+      position: relative;
+      top: 0;
     }
     .btn-3d:active {
-      transform: translateY(4px);
+      transform: translateY(5px);
       border-bottom: 0px solid rgba(0,0,0,0.15);
+      margin-bottom: 5px; /* keep layout stable */
     }
 
-    /* Specific Colors per state */
-    .card-unread {
-      background: white;
-      border: 2px solid #e5e7eb;
-      border-bottom: 6px solid #e5e7eb;
-    }
-    .card-read {
-      background: #dcfce7; /* green-100 */
-      border: 2px solid #22c55e; /* green-500 */
-      border-bottom: 6px solid #15803d; /* green-700 */
-    }
+    /* Card States */
+    .card-normal { background: white; border: 2px solid #e5e7eb; border-bottom: 6px solid #e5e7eb; }
+    .card-read { background: #dcfce7; border: 2px solid #22c55e; border-bottom: 6px solid #15803d; }
+    .card-wrong { background: #fee2e2; border: 2px solid #ef4444; border-bottom: 6px solid #b91c1c; animation: wiggle 0.4s; }
+    .card-correct { background: #d1fae5; border: 2px solid #10b981; border-bottom: 6px solid #047857; transform: scale(1.05); }
 
     /* Scrollbar hide */
-    .hide-scrollbar::-webkit-scrollbar {
-      display: none;
-    }
-    .hide-scrollbar {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
   <style>@view-transition { navigation: auto; }</style>
   <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
@@ -62,62 +58,91 @@
   
   <div id="app" class="w-full h-full flex flex-col max-w-4xl mx-auto bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]">
     
-    <header class="pt-6 pb-2 px-4 text-center shrink-0 z-10">
-      <h1 id="main-title" class="text-3xl md:text-4xl font-bold text-purple-600 drop-shadow-sm tracking-wide mb-1">
-        🎈 Ayo Membaca!
-      </h1>
-      <p id="instruction" class="text-slate-500 text-sm font-medium bg-white/80 inline-block px-3 py-1 rounded-full backdrop-blur-sm border border-slate-200">
-        Tap kartu untuk mendengar suaranya 🔊
-      </p>
+    <header class="pt-4 pb-2 px-4 text-center shrink-0 z-20">
+      <div class="bg-white/90 backdrop-blur rounded-3xl p-1.5 inline-flex shadow-sm border border-slate-200 mb-3">
+        <button onclick="window.setMode('learn')" id="mode-learn" class="px-6 py-2 rounded-2xl text-sm font-bold transition-all bg-purple-500 text-white shadow-md">
+          📖 Belajar
+        </button>
+        <button onclick="window.setMode('quiz')" id="mode-quiz" class="px-6 py-2 rounded-2xl text-sm font-bold transition-all text-slate-500 hover:bg-slate-100">
+          🎮 Kuis
+        </button>
+      </div>
+      
+      <div id="instruction-bar" class="text-center">
+        <p id="instruction" class="text-slate-500 text-sm font-medium bg-white/80 inline-block px-3 py-1 rounded-full border border-slate-200">
+          Tap kartu untuk mendengar suaranya 🔊
+        </p>
+      </div>
     </header>
 
-    <div class="px-4 py-2 shrink-0">
+    <div class="px-4 py-1 shrink-0 z-10">
       <div class="flex gap-2 overflow-x-auto hide-scrollbar pb-2" id="category-container">
         </div>
     </div>
 
-    <div class="px-6 py-1 shrink-0">
-      <div class="flex justify-between items-end mb-1">
-        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Level Ini</span>
-        <span id="progress-text" class="text-sm font-bold text-purple-600">0/12</span>
-      </div>
-      <div class="h-4 w-full bg-slate-200 rounded-full overflow-hidden shadow-inner">
-        <div id="progress-bar" class="h-full bg-gradient-to-r from-yellow-400 via-orange-400 to-red-500 w-0 transition-all duration-500 ease-out rounded-full"></div>
-      </div>
-    </div>
-
-    <div class="flex-1 overflow-y-auto p-4" id="scroll-area">
-      <div id="cards-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 pb-20">
-        </div>
+    <div class="flex-1 overflow-y-auto p-4 relative" id="scroll-area">
       
-      <div id="pagination-controls" class="flex justify-center gap-4 mt-6 mb-8 hidden">
-         <button onclick="changePage(-1)" class="btn-3d px-6 py-2 bg-slate-200 text-slate-600 rounded-xl font-bold">⬅️ Sebelumnya</button>
-         <button onclick="changePage(1)" class="btn-3d px-6 py-2 bg-purple-500 text-white rounded-xl font-bold">Selanjutnya ➡️</button>
+      <div id="view-learn" class="transition-opacity duration-300">
+        <div class="mb-4 px-2">
+           <div class="flex justify-between items-end mb-1">
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Progres</span>
+            <span id="progress-text" class="text-sm font-bold text-purple-600">0/12</span>
+          </div>
+          <div class="h-3 w-full bg-slate-200 rounded-full overflow-hidden">
+            <div id="progress-bar" class="h-full bg-gradient-to-r from-green-400 to-emerald-500 w-0 transition-all duration-500 rounded-full"></div>
+          </div>
+        </div>
+
+        <div id="cards-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 pb-20">
+          </div>
+        
+        <div id="pagination-controls" class="flex justify-center gap-4 mt-6 mb-8 hidden">
+           <button onclick="window.changePage(-1)" class="btn-3d px-4 py-2 bg-slate-200 text-slate-600 rounded-xl font-bold text-sm">⬅️</button>
+           <button onclick="window.changePage(1)" class="btn-3d px-6 py-2 bg-purple-500 text-white rounded-xl font-bold text-sm">Halaman Berikutnya ➡️</button>
+        </div>
+      </div>
+
+      <div id="view-quiz" class="hidden flex flex-col items-center justify-center h-full pb-20">
+        
+        <div class="absolute top-0 right-4 bg-yellow-100 text-yellow-700 px-4 py-2 rounded-2xl font-bold border-2 border-yellow-300 shadow-sm">
+          ⭐️ <span id="quiz-score">0</span>
+        </div>
+
+        <div class="mb-8 text-center animate-bounce-slow">
+           <button onclick="window.replayQuizSound()" class="btn-3d w-24 h-24 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-xl active:scale-95">
+             <span class="text-5xl">🔊</span>
+           </button>
+           <p class="mt-4 text-slate-500 font-medium">Dengarkan & Pilih!</p>
+        </div>
+
+        <div id="quiz-options" class="grid grid-cols-2 gap-4 w-full max-w-md">
+          </div>
+
+        <button id="btn-next-quiz" onclick="window.nextQuizQuestion()" class="mt-8 btn-3d px-8 py-3 bg-green-500 text-white font-bold rounded-2xl text-xl hidden shadow-lg animate-bounce">
+          Lanjut! 🚀
+        </button>
+
       </div>
     </div>
 
-    <div class="p-4 bg-white/90 backdrop-blur-md border-t border-slate-200 shrink-0 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] rounded-t-3xl z-20">
+    <div id="footer-learn" class="p-4 bg-white/90 backdrop-blur-md border-t border-slate-200 shrink-0 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] rounded-t-3xl z-20">
       <div class="flex gap-3">
-        <button onclick="shuffleAndReset()" class="btn-3d flex-1 py-3 bg-cyan-500 text-white font-bold rounded-2xl shadow-sm text-lg flex items-center justify-center gap-2">
-          🎲 Acak
+        <button onclick="window.shuffleAndReset()" class="btn-3d flex-1 py-3 bg-cyan-500 text-white font-bold rounded-2xl shadow-sm text-lg flex items-center justify-center gap-2">
+          🎲 Acak Kartu
         </button>
-        <button onclick="resetCurrentPage()" class="btn-3d w-16 py-3 bg-orange-400 text-white font-bold rounded-2xl shadow-sm flex items-center justify-center">
+        <button onclick="window.resetCurrentPage()" class="btn-3d w-16 py-3 bg-orange-400 text-white font-bold rounded-2xl shadow-sm flex items-center justify-center">
           🔄
         </button>
       </div>
     </div>
 
-    <div id="mascot-container" class="fixed bottom-24 right-4 pointer-events-none z-30 transition-transform duration-300">
-      <div class="text-6xl filter drop-shadow-xl animate-bounce" id="mascot-emoji">🐻</div>
-    </div>
-
     <div id="celebration" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 hidden transition-opacity duration-300 opacity-0">
       <div class="bg-white rounded-3xl p-8 text-center max-w-sm mx-4 shadow-2xl transform scale-90 transition-transform duration-300" id="celebration-content">
-        <div class="text-8xl mb-4 animate-pulse">🌟</div>
-        <h2 class="text-3xl font-bold text-purple-600 mb-2">Luar Biasa!</h2>
-        <p class="text-slate-500 mb-6 text-lg">Kamu menyelesaikan halaman ini!</p>
-        <button onclick="closeCelebration()" class="w-full btn-3d py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-2xl text-xl shadow-lg">
-          Lanjut Main! 🚀
+        <div class="text-8xl mb-4 animate-pulse">🎉</div>
+        <h2 class="text-3xl font-bold text-purple-600 mb-2">Hebat!</h2>
+        <p id="celebration-text" class="text-slate-500 mb-6 text-lg">Kamu berhasil!</p>
+        <button onclick="window.closeCelebration()" class="w-full btn-3d py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold rounded-2xl text-xl shadow-lg">
+          Lanjut! 🚀
         </button>
       </div>
     </div>
@@ -125,335 +150,363 @@
   </div>
 
   <script>
-    // --- CONFIGURATION & DATA ---
-    const CONFIG = {
-      itemsPerPage: 12, // LIMIT kartu agar tidak pusing
-      speakRate: 0.8,
-      speakPitch: 1.1
-    };
-
-    // Data Suku Kata Lengkap
+    // --- DATA ---
     const SYLLABLE_DATA = {
       'konsonan-vokal': [
-        { text: 'ba', emoji: '🍌', word: 'baju' }, { text: 'be', emoji: '🐻', word: 'beruang' }, { text: 'bi', emoji: '💫', word: 'biru' }, { text: 'bo', emoji: '⚽', word: 'bola' }, { text: 'bu', emoji: '🌙', word: 'buku' },
-        { text: 'ca', emoji: '🐛', word: 'cacing' }, { text: 'ce', emoji: '🥤', word: 'ceret' }, { text: 'ci', emoji: '💋', word: 'cium' }, { text: 'co', emoji: '🍫', word: 'coklat' }, { text: 'cu', emoji: '🧼', word: 'cuci' },
-        { text: 'da', emoji: '🎲', word: 'dadu' }, { text: 'de', emoji: '💗', word: 'dekat' }, { text: 'di', emoji: '🧱', word: 'dinding' }, { text: 'do', emoji: '🙏', word: 'doa' }, { text: 'du', emoji: '🌵', word: 'duri' },
-        { text: 'ga', emoji: '🐘', word: 'gajah' }, { text: 'ge', emoji: '⛪', word: 'gereja' }, { text: 'gi', emoji: '🦷', word: 'gigi' }, { text: 'go', emoji: '🥁', word: 'gong' }, { text: 'gu', emoji: '⛰️', word: 'gunung' },
-        { text: 'ha', emoji: '🐯', word: 'harimau' }, { text: 'he', emoji: '🐑', word: 'hebat' }, { text: 'hi', emoji: '🟢', word: 'hijau' }, { text: 'ho', emoji: '🎅', word: 'hobi' }, { text: 'hu', emoji: '🌲', word: 'hutan' },
-        { text: 'ja', emoji: '⏰', word: 'jam' }, { text: 'je', emoji: '🪟', word: 'jendela' }, { text: 'ji', emoji: '🧡', word: 'jingga' }, { text: 'jo', emoji: '👍', word: 'jomblo' }, { text: 'ju', emoji: '🎪', word: 'jual' },
-        { text: 'ka', emoji: '🦶', word: 'kaki' }, { text: 'ke', emoji: '🧀', word: 'keju' }, { text: 'ki', emoji: '⬅️', word: 'kiri' }, { text: 'ko', emoji: '📦', word: 'kotak' }, { text: 'ku', emoji: '🐱', word: 'kucing' },
-        { text: 'la', emoji: '🌊', word: 'laut' }, { text: 'le', emoji: '🐆', word: 'leopard' }, { text: 'li', emoji: '🕯️', word: 'lilin' }, { text: 'lo', emoji: '🪟', word: 'lobang' }, { text: 'lu', emoji: '🦜', word: 'lucu' },
-        { text: 'ma', emoji: '👁️', word: 'mata' }, { text: 'me', emoji: '🍉', word: 'melon' }, { text: 'mi', emoji: '🍜', word: 'mie' }, { text: 'mo', emoji: '🚗', word: 'mobil' }, { text: 'mu', emoji: '👄', word: 'mulut' },
-        { text: 'na', emoji: '🍚', word: 'nasi' }, { text: 'ne', emoji: '👵', word: 'nenek' }, { text: 'ni', emoji: '💍', word: 'nikah' }, { text: 'no', emoji: '🔢', word: 'nomor' }, { text: 'nu', emoji: '🥥', word: 'nyiur' },
-        { text: 'pa', emoji: '🏠', word: 'pagar' }, { text: 'pe', emoji: '✏️', word: 'pensil' }, { text: 'pi', emoji: '🔪', word: 'pisau' }, { text: 'po', emoji: '🌳', word: 'pohon' }, { text: 'pu', emoji: '👸', word: 'putri' },
-        { text: 'ra', emoji: '👑', word: 'raja' }, { text: 're', emoji: '🤝', word: 'rekan' }, { text: 'ri', emoji: '🦁', word: 'riang' }, { text: 'ro', emoji: '🍞', word: 'roti' }, { text: 'ru', emoji: '🏠', word: 'rumah' },
-        { text: 'sa', emoji: '🐄', word: 'sapi' }, { text: 'se', emoji: '👟', word: 'sepatu' }, { text: 'si', emoji: '🪥', word: 'sikat' }, { text: 'so', emoji: '🥤', word: 'soda' }, { text: 'su', emoji: '🥛', word: 'susu' },
-        { text: 'ta', emoji: '🖐️', word: 'tangan' }, { text: 'te', emoji: '🥚', word: 'telur' }, { text: 'ti', emoji: '📺', word: 'tivi' }, { text: 'to', emoji: '🍅', word: 'tomat' }, { text: 'tu', emoji: '🦴', word: 'tulang' },
-        { text: 'wa', emoji: '🎨', word: 'warna' }, { text: 'we', emoji: '🏃', word: 'wewangian' }, { text: 'wi', emoji: '🎓', word: 'wisuda' }, { text: 'wo', emoji: '🧔', word: 'wolu' }, { text: 'wu', emoji: '🏔️', word: 'wulung' },
-        { text: 'ya', emoji: '✅', word: 'ya' }, { text: 'ye', emoji: '👍', word: 'yel' }, { text: 'yi', emoji: '🎯', word: 'yin' }, { text: 'yo', emoji: '🎤', word: 'yoyo' }, { text: 'yu', emoji: '🚶', word: 'yuk' },
-        { text: 'za', emoji: '💎', word: 'zaman' }, { text: 'ze', emoji: '🦓', word: 'zebra' }, { text: 'zi', emoji: '🎒', word: 'ziarah' }, { text: 'zo', emoji: '🦁', word: 'zoo' }, { text: 'zu', emoji: '🧬', word: 'zulu' }
+        { text: 'ba', emoji: '🍌' }, { text: 'be', emoji: '🐻' }, { text: 'bi', emoji: '💫' }, { text: 'bo', emoji: '⚽' }, { text: 'bu', emoji: '🌙' },
+        { text: 'ca', emoji: '🐛' }, { text: 'ce', emoji: '🥤' }, { text: 'ci', emoji: '💋' }, { text: 'co', emoji: '🍫' }, { text: 'cu', emoji: '🧼' },
+        { text: 'da', emoji: '🎲' }, { text: 'de', emoji: '💗' }, { text: 'di', emoji: '🧱' }, { text: 'do', emoji: '🙏' }, { text: 'du', emoji: '🌵' },
+        { text: 'ka', emoji: '🦶' }, { text: 'ke', emoji: '🧀' }, { text: 'ki', emoji: '⬅️' }, { text: 'ko', emoji: '📦' }, { text: 'ku', emoji: '🐱' },
+        { text: 'ma', emoji: '👁️' }, { text: 'me', emoji: '🍉' }, { text: 'mi', emoji: '🍜' }, { text: 'mo', emoji: '🚗' }, { text: 'mu', emoji: '👄' },
+        { text: 'na', emoji: '🍚' }, { text: 'ne', emoji: '👵' }, { text: 'ni', emoji: '💍' }, { text: 'no', emoji: '🔢' }, { text: 'nu', emoji: '🥥' },
+        { text: 'sa', emoji: '🐄' }, { text: 'se', emoji: '👟' }, { text: 'si', emoji: '🪥' }, { text: 'so', emoji: '🥤' }, { text: 'su', emoji: '🥛' },
+        { text: 'ta', emoji: '🖐️' }, { text: 'te', emoji: '🥚' }, { text: 'ti', emoji: '📺' }, { text: 'to', emoji: '🍅' }, { text: 'tu', emoji: '🦴' },
+        { text: 'ya', emoji: '✅' }, { text: 'ye', emoji: '👍' }, { text: 'yi', emoji: '🎯' }, { text: 'yo', emoji: '🎤' }, { text: 'yu', emoji: '🚶' }
       ],
       'vokal-konsonan': [
-        { text: 'an', emoji: '🐕', word: 'anjing' }, { text: 'en', emoji: '😋', word: 'enak' }, { text: 'in', emoji: '💎', word: 'intan' }, { text: 'on', emoji: '🔛', word: 'ondel' }, { text: 'un', emoji: '💜', word: 'ungu' },
-        { text: 'ang', emoji: '💨', word: 'angin' }, { text: 'eng', emoji: '🎯', word: 'engkau' }, { text: 'ing', emoji: '🐝', word: 'eling' }, { text: 'ong', emoji: '🦍', word: 'gorila' }, { text: 'ung', emoji: '🟣', word: 'ungu' },
-        { text: 'ar', emoji: '🦅', word: 'arah' }, { text: 'er', emoji: '🧱', word: 'ember' }, { text: 'ir', emoji: '💧', word: 'air' }, { text: 'or', emoji: '🎺', word: 'orkes' }, { text: 'ur', emoji: '✨', word: 'huruf' },
-        { text: 'ak', emoji: '👶', word: 'anak' }, { text: 'ek', emoji: '👂', word: 'ekor' }, { text: 'ik', emoji: '🐟', word: 'ikan' }, { text: 'ok', emoji: '👌', word: 'tokoh' }, { text: 'uk', emoji: '📖', word: 'buku' },
-        { text: 'al', emoji: '🔥', word: 'amal' }, { text: 'el', emoji: '🎸', word: 'gelas' }, { text: 'il', emoji: '🧪', word: 'ilmu' }, { text: 'ol', emoji: '⚽', word: 'bola' }, { text: 'ul', emoji: '🐛', word: 'ulat' },
-        { text: 'am', emoji: '🕐', word: 'aman' }, { text: 'em', emoji: '🥇', word: 'emas' }, { text: 'im', emoji: '🌟', word: 'impian' }, { text: 'om', emoji: '👨', word: 'om' }, { text: 'um', emoji: '🏠', word: 'umum' },
-        { text: 'as', emoji: '💨', word: 'asap' }, { text: 'es', emoji: '🧊', word: 'es' }, { text: 'is', emoji: '📋', word: 'isi' }, { text: 'os', emoji: '💀', word: 'fosil' }, { text: 'us', emoji: '🚌', word: 'bus' },
-        { text: 'at', emoji: '🏋️', word: 'berat' }, { text: 'et', emoji: '🎫', word: 'tiket' }, { text: 'it', emoji: '🦆', word: 'bebek' }, { text: 'ot', emoji: '🚗', word: 'motor' }, { text: 'ut', emoji: '🪢', word: 'ikut' },
-        { text: 'ap', emoji: '🔥', word: 'api' }, { text: 'ep', emoji: '🚶', word: 'sepeda' }, { text: 'ip', emoji: '💤', word: 'tipis' }, { text: 'op', emoji: '🏪', word: 'toko' }, { text: 'up', emoji: '🎈', word: 'upacara' }
+        { text: 'an', emoji: '🐕' }, { text: 'en', emoji: '😋' }, { text: 'in', emoji: '💎' }, { text: 'on', emoji: '🔛' }, { text: 'un', emoji: '💜' },
+        { text: 'ar', emoji: '🦅' }, { text: 'er', emoji: '🧱' }, { text: 'ir', emoji: '💧' }, { text: 'or', emoji: '🎺' }, { text: 'ur', emoji: '✨' },
+        { text: 'am', emoji: '🕐' }, { text: 'em', emoji: '🥇' }, { text: 'im', emoji: '🌟' }, { text: 'om', emoji: '👨' }, { text: 'um', emoji: '🏠' }
       ],
       'konsonan-vokal-konsonan': [
-        { text: 'bak', emoji: '🛁', word: 'bak' }, { text: 'ban', emoji: '🛞', word: 'ban' }, { text: 'bas', emoji: '🚌', word: 'bas' }, { text: 'bel', emoji: '🔔', word: 'bel' }, { text: 'bis', emoji: '🚍', word: 'bis' },
-        { text: 'bok', emoji: '📦', word: 'box' }, { text: 'bom', emoji: '💣', word: 'bom' }, { text: 'bor', emoji: '🔨', word: 'bor' }, { text: 'bus', emoji: '🚌', word: 'bus' }, { text: 'but', emoji: '🎣', word: 'but' },
-        { text: 'cap', emoji: '👆', word: 'cap' }, { text: 'cat', emoji: '🎨', word: 'cat' }, { text: 'cek', emoji: '✅', word: 'cek' }, { text: 'cin', emoji: '💍', word: 'cincin' }, { text: 'cop', emoji: '🥤', word: 'cop' },
-        { text: 'dam', emoji: '🎯', word: 'dam' }, { text: 'dan', emoji: '➕', word: 'dan' }, { text: 'dem', emoji: '🤒', word: 'demam' }, { text: 'din', emoji: '❄️', word: 'dingin' }, { text: 'dok', emoji: '👨‍⚕️', word: 'dokter' },
-        { text: 'gam', emoji: '🖼️', word: 'gambar' }, { text: 'gas', emoji: '⛽', word: 'gas' }, { text: 'gel', emoji: '💇', word: 'gel' }, { text: 'gol', emoji: '⚽', word: 'gol' }, { text: 'guk', emoji: '🐕', word: 'guk' },
-        { text: 'hal', emoji: '📄', word: 'halaman' }, { text: 'ham', emoji: '🐹', word: 'hamster' }, { text: 'hat', emoji: '❤️', word: 'hati' }, { text: 'him', emoji: '🎵', word: 'himne' }, { text: 'hit', emoji: '⚫', word: 'hitam' },
-        { text: 'jak', emoji: '🧥', word: 'jaket' }, { text: 'jam', emoji: '⏰', word: 'jam' }, { text: 'jat', emoji: '🍂', word: 'jatuh' }, { text: 'jip', emoji: '🚙', word: 'jip' }, { text: 'jok', emoji: '💺', word: 'jok' },
-        { text: 'kak', emoji: '👧', word: 'kakak' }, { text: 'kal', emoji: '🧮', word: 'kalkulator' }, { text: 'kam', emoji: '🏕️', word: 'kamp' }, { text: 'kan', emoji: '🐟', word: 'ikan' }, { text: 'kas', emoji: '💰', word: 'kas' },
-        { text: 'lam', emoji: '💡', word: 'lampu' }, { text: 'lan', emoji: '🛣️', word: 'jalan' }, { text: 'lap', emoji: '🧹', word: 'lap' }, { text: 'las', emoji: '⚡', word: 'las' }, { text: 'lat', emoji: '🏃', word: 'lat' },
-        { text: 'mak', emoji: '👩', word: 'mama' }, { text: 'mal', emoji: '🛒', word: 'mal' }, { text: 'mam', emoji: '🍲', word: 'makan' }, { text: 'man', emoji: '🧔', word: 'paman' }, { text: 'map', emoji: '📁', word: 'map' },
-        { text: 'nak', emoji: '👶', word: 'anak' }, { text: 'nam', emoji: '6️⃣', word: 'enam' }, { text: 'nan', emoji: '🍍', word: 'nanas' }, { text: 'nek', emoji: '👵', word: 'nenek' }, { text: 'net', emoji: '🎾', word: 'net' },
-        { text: 'pak', emoji: '👨', word: 'bapak' }, { text: 'pan', emoji: '🍳', word: 'panci' }, { text: 'pas', emoji: '🎯', word: 'pas' }, { text: 'pat', emoji: '4️⃣', word: 'empat' }, { text: 'pel', emoji: '🧹', word: 'pel' },
-        { text: 'rak', emoji: '🗄️', word: 'rak' }, { text: 'ram', emoji: '🐏', word: 'domba' }, { text: 'ran', emoji: '🎒', word: 'ransel' }, { text: 'rap', emoji: '🎤', word: 'rap' }, { text: 'rat', emoji: '🐭', word: 'tikus' },
-        { text: 'sak', emoji: '💰', word: 'saku' }, { text: 'sal', emoji: '🧣', word: 'syal' }, { text: 'sam', emoji: '🗑️', word: 'sampah' }, { text: 'san', emoji: '🏖️', word: 'pasir' }, { text: 'sap', emoji: '🧹', word: 'sapu' },
-        { text: 'tak', emoji: '🧠', word: 'otak' }, { text: 'tal', emoji: '🧶', word: 'tali' }, { text: 'tam', emoji: '🌳', word: 'taman' }, { text: 'tan', emoji: '🌱', word: 'tanah' }, { text: 'tap', emoji: '👣', word: 'tap' },
-        { text: 'wak', emoji: '⏰', word: 'waktu' }, { text: 'wan', emoji: '☁️', word: 'awan' }, { text: 'wat', emoji: '💡', word: 'watt' }, { text: 'web', emoji: '🌐', word: 'web' }, { text: 'wet', emoji: '💦', word: 'awet' }
+        { text: 'bak', emoji: '🛁' }, { text: 'ban', emoji: '🛞' }, { text: 'bas', emoji: '🚌' }, { text: 'bel', emoji: '🔔' }, { text: 'bis', emoji: '🚍' },
+        { text: 'jam', emoji: '⏰' }, { text: 'jok', emoji: '💺' }, { text: 'jus', emoji: '🧃' },
+        { text: 'kak', emoji: '👧' }, { text: 'kal', emoji: '🧮' }, { text: 'kam', emoji: '🏕️' }, { text: 'kan', emoji: '🐟' }, { text: 'kas', emoji: '💰' },
+        { text: 'lam', emoji: '💡' }, { text: 'lap', emoji: '🧹' }, { text: 'las', emoji: '⚡' },
+        { text: 'mak', emoji: '👩' }, { text: 'mam', emoji: '🍲' }, { text: 'map', emoji: '📁' }, { text: 'mas', emoji: '🥇' }
       ],
       'diftong': [
-        { text: 'ai', emoji: '💧', word: 'air' }, { text: 'au', emoji: '🐃', word: 'kerbau' }, { text: 'oi', emoji: '👋', word: 'amboi' }, { text: 'ei', emoji: '🎯', word: 'survei' },
-        { text: 'nya', emoji: '🐱', word: 'kucingnya' }, { text: 'nga', emoji: '👄', word: 'nganga' }, { text: 'nge', emoji: '🎢', word: 'ngebut' }, { text: 'ngi', emoji: '🌈', word: 'pelangi' }, { text: 'ngo', emoji: '🗣️', word: 'ngomel' },
-        { text: 'kha', emoji: '👳', word: 'khusus' }, { text: 'khi', emoji: '⛪', word: 'akhir' }, { text: 'sya', emoji: '🧣', word: 'syal' }, { text: 'syu', emoji: '🙏', word: 'syukur' }
+        { text: 'ai', emoji: '💧' }, { text: 'au', emoji: '🐃' }, { text: 'oi', emoji: '👋' }, { text: 'ei', emoji: '🎯' },
+        { text: 'nya', emoji: '🐱' }, { text: 'nga', emoji: '👄' }, { text: 'khi', emoji: '⛪' }, { text: 'syu', emoji: '🙏' }
       ]
     };
 
-    // --- APP STATE ---
-    let state = {
-      activeCategory: 'semua',
-      allCards: [],
-      currentCards: [],
-      readCards: new Set(),
-      currentPage: 0,
-      totalPages: 0,
-      audioCtx: null
-    };
-
-    const categories = [
+    const CATEGORIES = [
       { id: 'semua', label: '🌟 Semua', color: 'from-purple-500 to-indigo-500' },
       { id: 'konsonan-vokal', label: '🅰️ Ba-Bi-Bu', color: 'from-blue-400 to-cyan-400' },
       { id: 'vokal-konsonan', label: '🔤 An-In-Un', color: 'from-green-400 to-emerald-500' },
       { id: 'konsonan-vokal-konsonan', label: '📚 Bak-Bis', color: 'from-orange-400 to-amber-500' },
-      { id: 'diftong', label: '🎵 Ai-Au-Nya', color: 'from-pink-500 to-rose-500' }
+      { id: 'diftong', label: '🎵 Ai-Au', color: 'from-pink-500 to-rose-500' }
     ];
 
-    // --- INITIALIZATION ---
+    // --- STATE ---
+    let state = {
+      mode: 'learn', // 'learn' or 'quiz'
+      activeCategory: 'semua',
+      allCards: [],
+      currentCards: [], // For learn pagination
+      readCards: new Set(),
+      currentPage: 0,
+      
+      // Quiz State
+      quizScore: 0,
+      quizTarget: null,
+      isQuizAnswered: false
+    };
+
+    // --- INIT ---
     function init() {
-      // Setup Categories
+      // 1. Render Category Menu
       const catContainer = document.getElementById('category-container');
-      catContainer.innerHTML = categories.map(cat => `
-        <button onclick="setCategory('${cat.id}')" 
+      catContainer.innerHTML = CATEGORIES.map(cat => `
+        <button onclick="window.setCategory('${cat.id}')" 
           id="btn-${cat.id}"
-          class="cat-btn flex-shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-all active:scale-95 border-b-4 border-transparent
-          ${cat.id === 'semua' ? `bg-gradient-to-r ${cat.color} text-white border-black/20` : 'bg-white text-slate-500 border-slate-200'}">
+          class="cat-btn flex-shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-all border-b-4 border-slate-200 bg-white text-slate-500">
           ${cat.label}
         </button>
       `).join('');
 
-      loadCategory('semua');
+      // 2. Load Default
+      window.setCategory('semua');
       
-      // Init Audio Context for SFX on first interaction
+      // 3. Init Audio on first click
       document.body.addEventListener('click', initAudio, { once: true });
     }
 
+    let audioCtx = null;
     function initAudio() {
-      if (!state.audioCtx) {
-        state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    // --- GLOBAL ACTIONS (Attached to Window) ---
+
+    window.setMode = function(mode) {
+      state.mode = mode;
+      
+      // UI Toggles
+      document.getElementById('mode-learn').className = mode === 'learn' 
+        ? "px-6 py-2 rounded-2xl text-sm font-bold transition-all bg-purple-500 text-white shadow-md"
+        : "px-6 py-2 rounded-2xl text-sm font-bold transition-all text-slate-500 hover:bg-slate-100";
+        
+      document.getElementById('mode-quiz').className = mode === 'quiz'
+        ? "px-6 py-2 rounded-2xl text-sm font-bold transition-all bg-purple-500 text-white shadow-md"
+        : "px-6 py-2 rounded-2xl text-sm font-bold transition-all text-slate-500 hover:bg-slate-100";
+
+      // View Swapping
+      if (mode === 'learn') {
+        document.getElementById('view-learn').classList.remove('hidden');
+        document.getElementById('footer-learn').classList.remove('hidden');
+        document.getElementById('view-quiz').classList.add('hidden');
+        document.getElementById('instruction').textContent = "Tap kartu untuk mendengar suaranya 🔊";
+        renderLearnPage();
+      } else {
+        document.getElementById('view-learn').classList.add('hidden');
+        document.getElementById('footer-learn').classList.add('hidden');
+        document.getElementById('view-quiz').classList.remove('hidden');
+        document.getElementById('instruction').textContent = "Dengarkan suara dan pilih kartu yang benar! 🎯";
+        window.nextQuizQuestion();
       }
-    }
+    };
 
-    // --- LOGIC ---
-
-    function getCombinedData() {
-      return Object.values(SYLLABLE_DATA).flat();
-    }
-
-    function loadCategory(catId) {
+    window.setCategory = function(catId) {
       state.activeCategory = catId;
-      state.readCards.clear();
-      state.currentPage = 0;
-
-      // Update Buttons UI
-      categories.forEach(cat => {
+      
+      // Update Menu Styles
+      CATEGORIES.forEach(cat => {
         const btn = document.getElementById(`btn-${cat.id}`);
         if (cat.id === catId) {
-          btn.className = `cat-btn flex-shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-all transform scale-105 active:scale-95 border-b-4 border-black/20 bg-gradient-to-r ${cat.color} text-white shadow-lg`;
+          btn.className = `cat-btn flex-shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-all border-b-4 border-black/20 bg-gradient-to-r ${cat.color} text-white transform scale-105`;
         } else {
-          btn.className = `cat-btn flex-shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-all active:scale-95 border-b-4 border-slate-200 bg-white text-slate-500 hover:bg-slate-50`;
+          btn.className = `cat-btn flex-shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-all border-b-4 border-slate-200 bg-white text-slate-500 active:scale-95`;
         }
       });
 
-      // Fetch Data
-      let data = catId === 'semua' ? getCombinedData() : (SYLLABLE_DATA[catId] || []);
+      // Prepare Data
+      let data = catId === 'semua' ? Object.values(SYLLABLE_DATA).flat() : (SYLLABLE_DATA[catId] || []);
       
-      // Shuffle slightly for variety, but keep mostly ordered for learning
-      if (catId === 'semua') {
-         data = data.sort(() => Math.random() - 0.5);
+      if (state.mode === 'learn') {
+        // Learn Mode: Shuffle slightly but keep structure
+        if(catId === 'semua') data = data.sort(() => Math.random() - 0.5);
+        state.allCards = data;
+        state.currentPage = 0;
+        state.readCards.clear();
+        renderLearnPage();
+      } else {
+        // Quiz Mode: Just reload the question based on new category
+        window.nextQuizQuestion();
       }
-      
-      state.allCards = data;
-      state.totalPages = Math.ceil(data.length / CONFIG.itemsPerPage);
-      
-      renderPage();
-    }
+    };
 
-    function renderPage() {
-      const start = state.currentPage * CONFIG.itemsPerPage;
-      const end = start + CONFIG.itemsPerPage;
+    // --- LEARN MODE LOGIC ---
+
+    function renderLearnPage() {
+      const ITEMS_PER_PAGE = 12;
+      const start = state.currentPage * ITEMS_PER_PAGE;
+      const end = start + ITEMS_PER_PAGE;
       state.currentCards = state.allCards.slice(start, end);
 
       const container = document.getElementById('cards-container');
-      container.innerHTML = ''; // Clear
+      container.innerHTML = '';
 
       state.currentCards.forEach((item, idx) => {
         const isRead = state.readCards.has(item.text);
         const card = document.createElement('button');
-        card.id = `card-${idx}`;
-        card.className = `relative aspect-square rounded-2xl flex flex-col items-center justify-center p-2 transition-all active:scale-95 cursor-pointer card-enter btn-3d ${isRead ? 'card-read' : 'card-unread'}`;
+        card.id = `learn-card-${idx}`;
+        card.className = `relative aspect-square rounded-2xl flex flex-col items-center justify-center p-2 transition-all active:scale-95 btn-3d card-enter ${isRead ? 'card-read' : 'card-normal'}`;
         card.style.animationDelay = `${idx * 0.05}s`;
-        card.onclick = () => speakCard(item, idx);
+        card.onclick = () => playLearnCard(item, idx);
         
         card.innerHTML = `
-          <div class="text-4xl mb-2 filter drop-shadow-sm transition-transform duration-300 group-hover:scale-110">${item.emoji}</div>
-          <div class="text-2xl md:text-3xl font-black text-slate-700 tracking-tight">${item.text}</div>
-          ${isRead ? '<div class="absolute top-2 right-2 text-green-500 text-xl animate-bounce">✓</div>' : ''}
+          <div class="text-4xl mb-2 filter drop-shadow-sm">${item.emoji}</div>
+          <div class="text-2xl md:text-3xl font-black text-slate-700">${item.text}</div>
+          ${isRead ? '<div class="absolute top-2 right-2 text-green-600 text-lg">✓</div>' : ''}
         `;
         container.appendChild(card);
       });
 
-      updateUI();
-    }
-
-    function updateUI() {
-      // Progress
-      const pageTotal = state.currentCards.length;
-      const pageDone = state.currentCards.filter(c => state.readCards.has(c.text)).length;
-      const pct = pageTotal === 0 ? 0 : (pageDone / pageTotal) * 100;
-
-      document.getElementById('progress-bar').style.width = `${pct}%`;
-      document.getElementById('progress-text').textContent = `${pageDone}/${pageTotal}`;
-
-      // Pagination Controls
-      const pagEl = document.getElementById('pagination-controls');
-      if (state.totalPages > 1) {
-        pagEl.classList.remove('hidden');
-        pagEl.children[0].disabled = state.currentPage === 0;
-        pagEl.children[0].classList.toggle('opacity-50', state.currentPage === 0);
-        
-        pagEl.children[1].disabled = state.currentPage >= state.totalPages - 1;
-        pagEl.children[1].classList.toggle('opacity-50', state.currentPage >= state.totalPages - 1);
+      // Update Pagination UI
+      const totalPages = Math.ceil(state.allCards.length / ITEMS_PER_PAGE);
+      const pagControls = document.getElementById('pagination-controls');
+      
+      if (totalPages > 1) {
+        pagControls.classList.remove('hidden');
+        pagControls.children[0].disabled = state.currentPage === 0;
+        pagControls.children[0].classList.toggle('opacity-50', state.currentPage === 0);
+        pagControls.children[1].disabled = state.currentPage >= totalPages - 1;
+        pagControls.children[1].classList.toggle('opacity-50', state.currentPage >= totalPages - 1);
       } else {
-        pagEl.classList.add('hidden');
+        pagControls.classList.add('hidden');
       }
 
-      // Check Completion of Page
-      if (pageDone === pageTotal && pageTotal > 0) {
-        setTimeout(showCelebration, 500);
-      }
-    }
+      // Progress Bar
+      const pageDone = state.currentCards.filter(c => state.readCards.has(c.text)).length;
+      const pct = state.currentCards.length ? (pageDone / state.currentCards.length) * 100 : 0;
+      document.getElementById('progress-bar').style.width = `${pct}%`;
+      document.getElementById('progress-text').textContent = `${pageDone}/${state.currentCards.length}`;
 
-    function changePage(delta) {
-      const newPage = state.currentPage + delta;
-      if (newPage >= 0 && newPage < state.totalPages) {
-        state.currentPage = newPage;
-        // Reset read status for new page? No, keep global read status logic if wanted, 
-        // but for this UX, let's treat pages as mini-levels.
-        // We will clear read status visually for the new set unless we track global IDs.
-        // For simplicity: Clear visuals for new random set.
-        state.readCards.clear();
-        renderPage();
-        document.getElementById('scroll-area').scrollTop = 0;
+      // Check Page Completion
+      if (pageDone === state.currentCards.length && state.currentCards.length > 0) {
+        setTimeout(() => showModal("Luar Biasa!", "Halaman ini selesai!"), 500);
       }
     }
 
-    // --- AUDIO & INTERACTIONS ---
-
-    function playSuccessSound() {
-      if (!state.audioCtx) return;
-      const osc = state.audioCtx.createOscillator();
-      const gain = state.audioCtx.createGain();
+    function playLearnCard(item, idx) {
+      speak(item.text);
       
-      osc.connect(gain);
-      gain.connect(state.audioCtx.destination);
-      
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(500, state.audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(1000, state.audioCtx.currentTime + 0.1);
-      
-      gain.gain.setValueAtTime(0.3, state.audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, state.audioCtx.currentTime + 0.3);
-      
-      osc.start();
-      osc.stop(state.audioCtx.currentTime + 0.3);
-    }
-
-    function speakCard(item, idx) {
-      // Visual feedback
-      const card = document.getElementById(`card-${idx}`);
-      card.classList.add('scale-95');
-      setTimeout(() => card.classList.remove('scale-95'), 150);
-
-      // Speak
-      if ('speechSynthesis' in window) {
-        speechSynthesis.cancel(); // Stop previous
-        const utterance = new SpeechSynthesisUtterance(item.text);
-        utterance.lang = 'id-ID';
-        utterance.rate = CONFIG.speakRate;
-        utterance.pitch = CONFIG.speakPitch;
+      // Visual Feedback
+      const card = document.getElementById(`learn-card-${idx}`);
+      if (!state.readCards.has(item.text)) {
+        state.readCards.add(item.text);
+        card.className = card.className.replace('card-normal', 'card-read');
+        card.innerHTML += '<div class="absolute top-2 right-2 text-green-600 text-lg animate-bounce">✓</div>';
         
-        utterance.onend = () => {
-          if (!state.readCards.has(item.text)) {
-            state.readCards.add(item.text);
-            playSuccessSound();
-            
-            // Visual Update
-            card.className = card.className.replace('card-unread', 'card-read');
-            card.innerHTML += '<div class="absolute top-2 right-2 text-green-500 text-xl animate-bounce">✓</div>';
-            
-            updateUI();
-            updateMascot();
-          }
-        };
+        // Update Progress
+        const pageDone = state.currentCards.filter(c => state.readCards.has(c.text)).length;
+        document.getElementById('progress-bar').style.width = `${(pageDone / state.currentCards.length) * 100}%`;
+        document.getElementById('progress-text').textContent = `${pageDone}/${state.currentCards.length}`;
         
-        speechSynthesis.speak(utterance);
-      }
-    }
-
-    function shuffleAndReset() {
-      state.allCards = state.allCards.sort(() => Math.random() - 0.5);
-      state.readCards.clear();
-      renderPage();
-    }
-    
-    function resetCurrentPage() {
-      state.readCards.clear();
-      renderPage();
-    }
-
-    function updateMascot() {
-      const emojis = ['🐻', '🐼', '🐨', '🦁', '🐯'];
-      const el = document.getElementById('mascot-emoji');
-      el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-      
-      // Jump animation
-      const container = document.getElementById('mascot-container');
-      container.style.transform = 'translateY(-20px) rotate(10deg)';
-      setTimeout(() => {
-        container.style.transform = 'translateY(0) rotate(0deg)';
-      }, 300);
-    }
-
-    function showCelebration() {
-      const modal = document.getElementById('celebration');
-      const content = document.getElementById('celebration-content');
-      modal.classList.remove('hidden');
-      // Force reflow
-      void modal.offsetWidth;
-      modal.classList.remove('opacity-0');
-      content.classList.remove('scale-90');
-      
-      // Play a little victory tune
-      if(state.audioCtx) {
-         // Simple arpeggio
-         [440, 554, 659, 880].forEach((freq, i) => {
-           setTimeout(() => {
-             const osc = state.audioCtx.createOscillator();
-             const gain = state.audioCtx.createGain();
-             osc.connect(gain);
-             gain.connect(state.audioCtx.destination);
-             osc.frequency.value = freq;
-             gain.gain.setValueAtTime(0.2, state.audioCtx.currentTime);
-             gain.gain.exponentialRampToValueAtTime(0.01, state.audioCtx.currentTime + 0.3);
-             osc.start();
-             osc.stop(state.audioCtx.currentTime + 0.3);
-           }, i * 150);
-         });
-      }
-    }
-
-    function closeCelebration() {
-      const modal = document.getElementById('celebration');
-      modal.classList.add('opacity-0');
-      setTimeout(() => {
-        modal.classList.add('hidden');
-        if (state.currentPage < state.totalPages - 1) {
-          changePage(1);
-        } else {
-          shuffleAndReset(); // Loop back if at end
+        playSound('ding');
+        
+        if (pageDone === state.currentCards.length) {
+            setTimeout(() => showModal("Hore!", "Kamu menyelesaikan semua!"), 800);
         }
-      }, 300);
+      }
     }
+
+    window.changePage = function(delta) {
+      state.currentPage += delta;
+      state.readCards.clear(); // Reset stars for new page
+      renderLearnPage();
+      document.getElementById('scroll-area').scrollTop = 0;
+    };
+
+    window.shuffleAndReset = function() {
+      state.allCards.sort(() => Math.random() - 0.5);
+      state.readCards.clear();
+      renderLearnPage();
+    };
+
+    window.resetCurrentPage = function() {
+      state.readCards.clear();
+      renderLearnPage();
+    };
+
+    // --- QUIZ MODE LOGIC ---
+
+    window.nextQuizQuestion = function() {
+      state.isQuizAnswered = false;
+      document.getElementById('btn-next-quiz').classList.add('hidden');
+      
+      // 1. Get pool
+      let pool = state.activeCategory === 'semua' ? Object.values(SYLLABLE_DATA).flat() : (SYLLABLE_DATA[state.activeCategory] || []);
+      if (pool.length < 4) pool = Object.values(SYLLABLE_DATA).flat(); // Fallback if cat is too small
+      
+      // 2. Pick Target
+      const target = pool[Math.floor(Math.random() * pool.length)];
+      state.quizTarget = target;
+      
+      // 3. Pick 3 Distractors
+      let options = [target];
+      while (options.length < 4) {
+        const d = pool[Math.floor(Math.random() * pool.length)];
+        if (!options.some(o => o.text === d.text)) options.push(d);
+      }
+      options.sort(() => Math.random() - 0.5);
+
+      // 4. Render Options
+      const container = document.getElementById('quiz-options');
+      container.innerHTML = options.map((item, idx) => `
+        <button onclick="window.checkAnswer('${item.text}', this)" 
+          class="aspect-square rounded-2xl flex flex-col items-center justify-center p-2 bg-white border-2 border-slate-200 border-b-[6px] transition-all active:scale-95 shadow-sm">
+          <span class="text-4xl mb-1">${item.emoji}</span>
+          <span class="text-3xl font-bold text-slate-700">${item.text}</span>
+        </button>
+      `).join('');
+
+      // 5. Auto play sound after short delay
+      setTimeout(() => speak(target.text), 300);
+    };
+
+    window.replayQuizSound = function() {
+      if (state.quizTarget) speak(state.quizTarget.text);
+    };
+
+    window.checkAnswer = function(text, btnElement) {
+      if (state.isQuizAnswered) return;
+
+      if (text === state.quizTarget.text) {
+        // CORRECT
+        state.isQuizAnswered = true;
+        playSound('win');
+        btnElement.className = "aspect-square rounded-2xl flex flex-col items-center justify-center p-2 card-correct shadow-md";
+        state.quizScore++;
+        document.getElementById('quiz-score').textContent = state.quizScore;
+        
+        // Show Next Button
+        document.getElementById('btn-next-quiz').classList.remove('hidden');
+        
+        // Confetti effect (simulated via modal for simplicity or just sound)
+        
+      } else {
+        // WRONG
+        playSound('wrong');
+        btnElement.className = "aspect-square rounded-2xl flex flex-col items-center justify-center p-2 card-wrong";
+        speak("bukan " + text);
+        setTimeout(() => {
+             if (!state.isQuizAnswered) btnElement.className = "aspect-square rounded-2xl flex flex-col items-center justify-center p-2 bg-white border-2 border-slate-200 border-b-[6px]";
+        }, 500);
+      }
+    };
+
+
+    // --- HELPERS ---
+
+    function speak(text) {
+      if ('speechSynthesis' in window) {
+        speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'id-ID';
+        u.rate = 0.8;
+        speechSynthesis.speak(u);
+      }
+    }
+
+    function playSound(type) {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      if (type === 'ding') { // High ding
+        osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+      } else if (type === 'win') { // Victory Upward
+        osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+        osc.frequency.linearRampToValueAtTime(800, audioCtx.currentTime + 0.2);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+      } else if (type === 'wrong') { // Low error
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+        osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.2);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+      }
+    }
+
+    function showModal(title, text) {
+      document.getElementById('celebration').classList.remove('hidden');
+      setTimeout(() => document.getElementById('celebration').classList.remove('opacity-0'), 10);
+      document.querySelector('#celebration h2').textContent = title;
+      document.getElementById('celebration-text').textContent = text;
+      playSound('win');
+    }
+
+    window.closeCelebration = function() {
+       document.getElementById('celebration').classList.add('opacity-0');
+       setTimeout(() => document.getElementById('celebration').classList.add('hidden'), 300);
+       
+       if (state.mode === 'learn') {
+           // Maybe move to next page?
+       } else {
+           window.nextQuizQuestion();
+       }
+    };
 
     // Run
     init();
